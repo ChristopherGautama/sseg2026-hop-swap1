@@ -1,0 +1,5566 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hop & Swap — The Wonderland Time-Market</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Cinzel + Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    /* ============================================================
+       THEME TOKENS
+       ============================================================ */
+    :root {
+      /* === Background layers (lebih ungu, Step 8) === */
+      --bg-main:          #0F1230;  /* Deep midnight + hint purple */
+      --bg-card:          #1A1B45;  /* Royal blue-purple */
+      --bg-card-elevated: #232456;  /* Lighter purple-blue */
+
+      /* === Gold (warm + cool) === */
+      --gold:        #D4AF37;
+      --gold-bright: #F4D03F;
+      --gold-warm:   #E8B547;
+      --gold-glow:   #FFD66B;
+
+      /* === Purple accent (lebih dominan) === */
+      --purple-deep:   #2D1F4A;
+      --purple-mid:    #5B3F8A;
+      --purple-bright: #7B5FB0;
+      --purple-glow:   rgba(123, 95, 176, 0.35);
+
+      /* === Text === */
+      --text-main:  #F0EDE5;
+      --text-muted: #A89FB8;  /* Slight purple tint */
+
+      /* === Status (TIDAK diubah — readability) === */
+      --green: #4ADE80;
+      --red:   #F87171;
+
+      /* === Borders === */
+      --gold-border:        rgba(212, 175, 55, 0.40);
+      --gold-border-strong: rgba(212, 175, 55, 0.70);
+      --purple-border:      rgba(123, 95, 176, 0.40);
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Wonderland backdrop (Step 8): warm gold + DOMINANT purple portal + sparkle */
+    body {
+      background-image:
+        /* Warm gold glow top-left (pocket watch) */
+        radial-gradient(circle at 12% 10%, rgba(232, 181, 71, 0.15), transparent 35%),
+        /* PURPLE PORTAL top-right (lebih kuat) */
+        radial-gradient(circle at 88% 15%, rgba(123, 95, 176, 0.25), transparent 45%),
+        /* Royal purple bottom-right */
+        radial-gradient(circle at 90% 85%, rgba(91, 63, 138, 0.20), transparent 40%),
+        /* Deep purple bottom-left */
+        radial-gradient(circle at 8% 90%, rgba(45, 31, 74, 0.50), transparent 50%),
+        /* Sparkle gold center */
+        radial-gradient(circle at 50% 60%, rgba(255, 215, 100, 0.05), transparent 60%);
+      background-attachment: fixed;
+    }
+
+    /* Subtle starfield (sangat tipis, tidak distracting) */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(2px 2px at 20% 30%, rgba(255, 215, 100, 0.15), transparent),
+        radial-gradient(1px 1px at 60% 70%, rgba(255, 255, 255, 0.10), transparent),
+        radial-gradient(1px 1px at 80% 20%, rgba(212, 175, 55, 0.12), transparent),
+        radial-gradient(2px 2px at 30% 80%, rgba(255, 215, 100, 0.08), transparent),
+        radial-gradient(1px 1px at 75% 55%, rgba(255, 255, 255, 0.10), transparent);
+      background-size: 220px 220px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ============================================================
+       TYPOGRAPHY
+       ============================================================ */
+    .font-cinzel {
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.08em;
+    }
+
+    .text-gold        { color: var(--gold); }
+    .text-gold-bright { color: var(--gold-bright); }
+    .text-muted       { color: var(--text-muted); }
+    .text-up          { color: var(--green); }
+    .text-down        { color: var(--red); }
+
+    /* ============================================================
+       CARD / ORNAMENT STYLES
+       ============================================================ */
+    .panel {
+      background: linear-gradient(180deg, var(--bg-card-elevated), var(--bg-card));
+      border: 1px solid var(--gold-border);
+      border-radius: 10px;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 215, 100, 0.06),
+        inset 0 0 60px rgba(123, 95, 176, 0.08),
+        0 4px 16px rgba(15, 18, 48, 0.6);
+      position: relative;
+    }
+
+    /* Sudut ornamen emas — corner accents */
+    .panel::before,
+    .panel::after {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border: 1px solid var(--gold);
+      pointer-events: none;
+    }
+    .panel::before {
+      top: -1px;
+      left: -1px;
+      border-right: none;
+      border-bottom: none;
+    }
+    .panel::after {
+      bottom: -1px;
+      right: -1px;
+      border-left: none;
+      border-top: none;
+    }
+
+    .section-title {
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.12em;
+      color: var(--gold);
+      font-weight: 700;
+      text-transform: uppercase;
+      text-shadow: 0 0 12px rgba(212, 175, 55, 0.30);
+    }
+
+    .divider-gold {
+      height: 1px;
+      background: linear-gradient(
+        to right,
+        transparent,
+        var(--gold-border-strong),
+        transparent
+      );
+    }
+
+    /* ============================================================
+       MARKET BOARD
+       ============================================================ */
+    .session-col {
+      background-color: rgba(13, 27, 42, 0.6);
+      border: 1px solid var(--gold-border);
+      border-radius: 6px;
+    }
+
+    .session-header {
+      border-bottom: 1px solid var(--gold-border);
+      background: linear-gradient(
+        180deg,
+        rgba(212, 175, 55, 0.12),
+        transparent
+      );
+    }
+
+    .asset-row {
+      border-bottom: 1px solid var(--gold-border);
+      transition: background-color 0.4s ease;
+    }
+    .asset-row:last-child {
+      border-bottom: none;
+    }
+
+    .asset-row.flash-up {
+      background-color: rgba(74, 222, 128, 0.18);
+    }
+    .asset-row.flash-down {
+      background-color: rgba(248, 113, 113, 0.18);
+    }
+
+    .price-tag {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+
+    /* ============================================================
+       LEADERBOARD
+       ============================================================ */
+    .team-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--gold-border);
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .team-card.is-leader {
+      border: 2px solid var(--gold);
+      box-shadow:
+        0 0 18px rgba(212, 175, 55, 0.35),
+        0 0 0 1px rgba(212, 175, 55, 0.2) inset;
+    }
+
+    /* ============================================================
+       PHASE INDICATOR
+       ============================================================ */
+    .phase-badge {
+      border: 1px solid var(--gold);
+      color: var(--gold-bright);
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.15em;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      background: rgba(212, 175, 55, 0.08);
+    }
+
+    /* ============================================================
+       BUTTONS
+       ============================================================ */
+    .btn-gold {
+      background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+      color: #1A1A1A;
+      font-weight: 600;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+    }
+    .btn-gold:disabled {
+      background: #3a3a3a;
+      color: var(--text-muted);
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .btn-danger {
+      background: rgba(248, 113, 113, 0.15);
+      color: var(--red);
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .btn-danger:hover {
+      background: rgba(248, 113, 113, 0.25);
+    }
+
+    /* ============================================================
+       BANK FORM
+       ============================================================ */
+    .form-label {
+      font-family: 'Cinzel', serif;
+      color: var(--text-muted);
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .form-input,
+    .form-select {
+      width: 100%;
+      background-color: rgba(13, 27, 42, 0.8);
+      border: 1px solid var(--gold-border);
+      color: var(--text-main);
+      padding: 8px 10px;
+      border-radius: 4px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+    .form-input:focus,
+    .form-select:focus {
+      border-color: var(--gold);
+    }
+
+    .form-select {
+      appearance: none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, var(--gold) 50%),
+        linear-gradient(135deg, var(--gold) 50%, transparent 50%);
+      background-position:
+        calc(100% - 14px) 14px,
+        calc(100% - 9px) 14px;
+      background-size: 5px 5px;
+      background-repeat: no-repeat;
+      padding-right: 28px;
+    }
+
+    .preview-box {
+      background-color: rgba(13, 27, 42, 0.8);
+      border: 1px solid var(--gold-border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-size: 0.85rem;
+      line-height: 1.55;
+      font-variant-numeric: tabular-nums;
+      min-height: 88px;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+    .preview-box.is-error {
+      border-color: rgba(248, 113, 113, 0.55);
+      background-color: rgba(248, 113, 113, 0.08);
+      color: var(--red);
+    }
+    .preview-box.is-valid {
+      border-color: rgba(74, 222, 128, 0.45);
+    }
+
+    .preview-box .preview-headline {
+      color: var(--gold-bright);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    /* ============================================================
+       TRANSACTION LOG
+       ============================================================ */
+    .tx-log-entry {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-variant-numeric: tabular-nums;
+      border-left: 3px solid transparent;
+      background-color: rgba(13, 27, 42, 0.5);
+    }
+    .tx-log-entry.tx-buy  {
+      border-left-color: var(--red);
+      color: #FCA5A5;
+    }
+    .tx-log-entry.tx-sell {
+      border-left-color: var(--green);
+      color: #86EFAC;
+    }
+    .tx-log-entry.tx-hop  {
+      border-left-color: var(--gold);
+      color: var(--gold-bright);
+    }
+
+    /* ============================================================
+       TOAST — stacked, multiple simultaneous (Step 5)
+       ============================================================ */
+    #toastContainer {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      padding: 12px 18px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 250px;
+      max-width: 420px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+      animation: toast-slide-in 0.3s ease-out;
+      pointer-events: auto;
+    }
+    .toast-icon {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .toast-success { background: #1B4332; border-left: 4px solid var(--green); color: #DCFCE7; }
+    .toast-error   { background: #4A0E0E; border-left: 4px solid var(--red);   color: #FECACA; }
+    .toast-info    { background: #1B263B; border-left: 4px solid var(--gold);  color: #E8E8E8; }
+    .toast-warning { background: #4A3B0E; border-left: 4px solid #F59E0B;      color: #FEF3C7; }
+    .toast-fadeout { animation: toast-slide-out 0.3s ease-in forwards; }
+
+    @keyframes toast-slide-in {
+      from { transform: translateX(110%); opacity: 0; }
+      to   { transform: translateX(0);    opacity: 1; }
+    }
+    @keyframes toast-slide-out {
+      from { transform: translateX(0);    opacity: 1; }
+      to   { transform: translateX(110%); opacity: 0; }
+    }
+
+    /* ============================================================
+       MARKET BOARD — FLASH ANIMATION (Step 6 revision)
+       Flash bold ke fade-out tipis, border-left persisten setelah animasi.
+       Arrow indicator besar + bouncing in.
+       ============================================================ */
+    @keyframes flash-up-strong {
+      0%   { background-color: rgba(74, 222, 128, 0.55); transform: scale(1.02); }
+      50%  { background-color: rgba(74, 222, 128, 0.35); }
+      100% { background-color: rgba(74, 222, 128, 0.12); transform: scale(1); }
+    }
+    @keyframes flash-down-strong {
+      0%   { background-color: rgba(248, 113, 113, 0.55); transform: scale(1.02); }
+      50%  { background-color: rgba(248, 113, 113, 0.35); }
+      100% { background-color: rgba(248, 113, 113, 0.12); transform: scale(1); }
+    }
+    .asset-row.flash-up {
+      animation: flash-up-strong 2.5s ease-out forwards;
+      border-left: 4px solid var(--green);
+    }
+    .asset-row.flash-down {
+      animation: flash-down-strong 2.5s ease-out forwards;
+      border-left: 4px solid var(--red);
+    }
+
+    @keyframes arrow-bounce {
+      0%   { transform: translateY(-10px); opacity: 0; }
+      50%  { transform: translateY(2px);   opacity: 1; }
+      100% { transform: translateY(0);     opacity: 1; }
+    }
+    .price-arrow {
+      display: inline-block;
+      font-size: 1.1em;
+      font-weight: 700;
+      margin-right: 6px;
+      text-shadow: 0 0 8px currentColor;
+      animation: arrow-bounce 0.6s ease-out;
+      vertical-align: middle;
+    }
+
+    .text-up   { color: var(--green) !important; }
+    .text-down { color: var(--red)   !important; }
+
+    /* ============================================================
+       EVENT TRIGGER BUTTONS (Bank Panel)
+       ============================================================ */
+    .event-section {
+      border: 1px solid var(--gold-border);
+      border-radius: 6px;
+      padding: 12px;
+      background: rgba(13, 27, 42, 0.5);
+    }
+
+    .event-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: 1px solid var(--gold-border);
+      transition: all 0.2s ease;
+    }
+    .event-btn.active {
+      background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+      color: #1A1A1A;
+      border-color: var(--gold);
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.35);
+    }
+    .event-btn.active:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 18px rgba(212, 175, 55, 0.55);
+    }
+    .event-btn.done {
+      background: rgba(74, 222, 128, 0.1);
+      color: #86EFAC;
+      border-color: rgba(74, 222, 128, 0.3);
+      cursor: default;
+    }
+    .event-btn:disabled,
+    .event-btn.locked {
+      background: rgba(58, 58, 58, 0.5);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      opacity: 0.5;
+      border-color: rgba(160, 160, 160, 0.2);
+    }
+
+    .event-log-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      padding: 3px 6px;
+      font-variant-numeric: tabular-nums;
+    }
+    .event-log-line .status-done    { color: var(--green); }
+    .event-log-line .status-pending { color: var(--text-muted); font-style: italic; }
+
+    /* ============================================================
+       EVENT POPUP — Fullscreen overlay
+       ============================================================ */
+    .event-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+    .event-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .event-overlay.hidden { display: none; }
+
+    .event-card {
+      max-width: 720px;
+      width: 90%;
+      background: linear-gradient(135deg, rgba(28, 45, 74, 0.98), rgba(45, 31, 74, 0.95));
+      border: 3px solid var(--gold);
+      border-radius: 16px;
+      padding: 36px 40px 28px;
+      box-shadow:
+        0 0 60px rgba(91, 63, 138, 0.40),
+        0 0 30px rgba(212, 175, 55, 0.30),
+        0 20px 60px rgba(0, 0, 0, 0.6);
+      position: relative;
+      transform: scale(0.85);
+      opacity: 0;
+      transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2), opacity 0.5s ease;
+    }
+    .event-overlay.show .event-card {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    /* Ornamen sudut emas pada card popup */
+    .event-card::before,
+    .event-card::after {
+      content: '';
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border: 2px solid var(--gold-bright);
+    }
+    .event-card::before {
+      top: 10px;
+      left: 10px;
+      border-right: none;
+      border-bottom: none;
+    }
+    .event-card::after {
+      bottom: 10px;
+      right: 10px;
+      border-left: none;
+      border-top: none;
+    }
+
+    .event-counter {
+      position: absolute;
+      top: 16px;
+      right: 24px;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: 1px solid var(--gold);
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: rgba(212, 175, 55, 0.08);
+    }
+
+    .event-eyebrow {
+      font-family: 'Cinzel', serif;
+      color: var(--gold-bright);
+      letter-spacing: 0.3em;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .event-title {
+      font-family: 'Cinzel', serif;
+      color: var(--gold);
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 14px;
+      letter-spacing: 0.04em;
+    }
+
+    .event-description {
+      color: #D1D5DB;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+
+    .event-impacts-title {
+      font-family: 'Cinzel', serif;
+      color: var(--gold);
+      font-size: 0.75rem;
+      letter-spacing: 0.25em;
+      text-align: center;
+      margin: 20px 0 12px;
+      position: relative;
+    }
+    .event-impacts-title::before,
+    .event-impacts-title::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 25%;
+      height: 1px;
+      background: var(--gold-border-strong);
+    }
+    .event-impacts-title::before { left: 0; }
+    .event-impacts-title::after  { right: 0; }
+
+    .event-impacts {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    .impact-row {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: rgba(13, 27, 42, 0.6);
+      border: 1px solid var(--gold-border);
+      border-radius: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+    .impact-asset {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Cinzel', serif;
+      font-weight: 600;
+      color: var(--gold-bright);
+      letter-spacing: 0.08em;
+    }
+    .impact-sessions {
+      display: flex;
+      gap: 14px;
+      font-size: 0.85rem;
+      flex-wrap: wrap;
+    }
+    .impact-session-cell {
+      display: flex;
+      gap: 4px;
+      align-items: baseline;
+    }
+    .impact-session-cell .label {
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .impact-pos { color: var(--green); font-weight: 600; }
+    .impact-neg { color: var(--red);   font-weight: 600; }
+
+    .event-progress {
+      width: 100%;
+      height: 6px;
+      background: rgba(212, 175, 55, 0.12);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 18px;
+    }
+    .event-progress .progress-bar {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--gold-bright), var(--gold));
+      transform-origin: left center;
+    }
+    @keyframes progress-shrink {
+      from { transform: scaleX(1); }
+      to   { transform: scaleX(0); }
+    }
+    .event-progress .progress-bar.run {
+      animation: progress-shrink 10s linear forwards;
+    }
+
+    /* Pulse-glow saat tombol event di-cue (waktunya trigger) */
+    @keyframes event-cue-pulse {
+      0%, 100% {
+        box-shadow: 0 0 8px rgba(244, 208, 63, 0.4);
+        transform: translateY(0);
+      }
+      50% {
+        box-shadow: 0 0 22px rgba(244, 208, 63, 0.95), 0 0 4px var(--gold-bright) inset;
+        transform: translateY(-1px);
+      }
+    }
+    .event-btn.cue-ready {
+      animation: event-cue-pulse 1.1s infinite;
+    }
+
+    /* ============================================================
+       TIMER (Step 4)
+       ============================================================ */
+    .timer-display {
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      font-size: 60px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.04em;
+      text-align: center;
+      color: var(--gold-warm);
+      text-shadow: 0 0 20px rgba(232, 181, 71, 0.40);
+      transition: color 0.3s ease, text-shadow 0.3s ease;
+    }
+    .timer-display.zone-warn     { color: #F59E0B; text-shadow: 0 0 18px rgba(245, 158, 11, 0.45); }
+    .timer-display.zone-critical { color: #EF4444; text-shadow: 0 0 22px rgba(239, 68, 68, 0.55); }
+
+    @keyframes timer-pulse {
+      0%, 100% { transform: scale(1);    opacity: 1;    }
+      50%      { transform: scale(1.05); opacity: 0.85; }
+    }
+    .timer-display.timer-critical {
+      animation: timer-pulse 1s infinite;
+    }
+
+    .timer-label {
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.25em;
+      color: var(--text-muted);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    /* Cue dot markers */
+    .cue-dots {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-top: 6px;
+    }
+    .cue-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 1.5px solid var(--gold-border-strong);
+      background: transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      color: #1A1A1A;
+      font-weight: 700;
+      transition: all 0.25s ease;
+    }
+    .cue-dot-track {
+      width: 26px;
+      height: 1.5px;
+      background: var(--gold-border);
+    }
+    .cue-dot.pending  { /* default */ }
+    .cue-dot.warning  {
+      background: var(--gold);
+      border-color: var(--gold);
+      box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+    }
+    .cue-dot.done {
+      background: var(--green);
+      border-color: var(--green);
+      color: #0D1B2A;
+    }
+    .cue-dot.overdue {
+      background: var(--red);
+      border-color: var(--red);
+      color: #0D1B2A;
+      animation: timer-pulse 0.9s infinite;
+    }
+
+    .cue-dot-label {
+      color: var(--text-muted);
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Timer control buttons */
+    .timer-btn {
+      font-family: 'Cinzel', serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .timer-btn-start {
+      background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+      color: #1A1A1A;
+      box-shadow: 0 0 14px rgba(212, 175, 55, 0.4);
+    }
+    .timer-btn-start:hover { transform: translateY(-1px); }
+    .timer-btn-pause {
+      background: rgba(160, 160, 160, 0.15);
+      color: var(--text-main);
+      border-color: rgba(160, 160, 160, 0.4);
+    }
+    .timer-btn-resume {
+      background: rgba(212, 175, 55, 0.15);
+      color: var(--gold-bright);
+      border-color: var(--gold);
+    }
+    .timer-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    /* SKIP button (Step 7) */
+    .btn-skip {
+      padding: 8px 14px;
+      background: rgba(212, 175, 55, 0.15);
+      border: 1px solid var(--gold-border);
+      color: var(--gold-bright);
+      border-radius: 6px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-skip:hover:not(:disabled) {
+      background: rgba(212, 175, 55, 0.3);
+      border-color: var(--gold);
+      transform: translateY(-1px);
+    }
+    .btn-skip:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    /* Step 9: Skip button saat post-Event-4 (skip ke Settlement) — urgency visual */
+    .btn-skip.skip-final {
+      background: linear-gradient(135deg, rgba(248, 113, 113, 0.25), rgba(212, 175, 55, 0.20));
+      border-color: var(--red);
+      color: #FCA5A5;
+      animation: skip-final-pulse 2s ease-in-out infinite;
+    }
+    .btn-skip.skip-final:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(248, 113, 113, 0.40), rgba(212, 175, 55, 0.35));
+      color: #FFE4E4;
+    }
+    @keyframes skip-final-pulse {
+      0%, 100% { box-shadow: 0 0 12px rgba(248, 113, 113, 0.30); }
+      50%      { box-shadow: 0 0 24px rgba(248, 113, 113, 0.60); }
+    }
+
+    /* Step 9: Timer di Settlement phase (countdown 1:00 → 0:00 reveal) */
+    .timer-display.timer-settlement {
+      color: var(--gold-bright) !important;
+      text-shadow:
+        0 0 30px rgba(244, 208, 63, 0.80),
+        0 0 60px rgba(212, 175, 55, 0.40);
+      animation: settlement-glow 1.5s ease-in-out infinite;
+    }
+    @keyframes settlement-glow {
+      0%, 100% {
+        text-shadow: 0 0 30px rgba(244, 208, 63, 0.80), 0 0 60px rgba(212, 175, 55, 0.40);
+      }
+      50% {
+        text-shadow: 0 0 50px rgba(244, 208, 63, 1.00), 0 0 100px rgba(212, 175, 55, 0.70);
+      }
+    }
+
+    /* ============================================================
+       PAUSE OVERLAY
+       ============================================================ */
+    .pause-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 1500;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .pause-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .pause-overlay.hidden { display: none; }
+
+    .pause-title {
+      font-family: 'Cinzel', serif;
+      color: var(--gold);
+      font-size: 80px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+    }
+    .pause-subtitle {
+      color: var(--text-muted);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      margin-top: 10px;
+    }
+
+    /* ============================================================
+       BIG CUE NOTIFICATION (top-center, 5s)
+       ============================================================ */
+    .cue-notification {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translate(-50%, -120%);
+      z-index: 1800;
+      padding: 14px 28px;
+      background: linear-gradient(180deg, rgba(244, 208, 63, 0.98), rgba(212, 175, 55, 0.95));
+      color: #1A1A1A;
+      border: 2px solid var(--gold-bright);
+      border-radius: 10px;
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      font-size: 1rem;
+      box-shadow: 0 8px 36px rgba(212, 175, 55, 0.5);
+      transition: transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+      pointer-events: none;
+      text-align: center;
+    }
+    .cue-notification.show {
+      transform: translate(-50%, 0);
+    }
+
+    /* ============================================================
+       SETTLEMENT SCREEN
+       ============================================================ */
+    .settlement-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      overflow-y: auto;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+    .settlement-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .settlement-overlay.hidden { display: none; }
+
+    .settlement-card {
+      width: 100%;
+      max-width: 920px;
+      background-color: var(--bg-card);
+      border: 3px solid var(--gold);
+      border-radius: 18px;
+      padding: 36px 40px;
+      box-shadow:
+        0 0 80px rgba(212, 175, 55, 0.45),
+        0 30px 80px rgba(0, 0, 0, 0.7);
+      position: relative;
+    }
+    .settlement-card::before,
+    .settlement-card::after {
+      content: '';
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--gold-bright);
+    }
+    .settlement-card::before {
+      top: 12px; left: 12px;
+      border-right: none; border-bottom: none;
+    }
+    .settlement-card::after {
+      bottom: 12px; right: 12px;
+      border-left: none; border-top: none;
+    }
+
+    .settlement-title {
+      font-family: 'Cinzel', serif;
+      color: var(--gold);
+      font-size: 2.2rem;
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+    .settlement-subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+
+    /* Spinner phase 1 */
+    .spinner-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 0;
+    }
+    .gold-spinner {
+      width: 64px;
+      height: 64px;
+      border: 4px solid rgba(212, 175, 55, 0.2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: gold-spin 0.9s linear infinite;
+      margin-bottom: 18px;
+    }
+    @keyframes gold-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Breakdown */
+    .team-breakdown {
+      background: rgba(13, 27, 42, 0.7);
+      border: 1px solid var(--gold-border);
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin-bottom: 14px;
+    }
+    .team-breakdown-name {
+      font-family: 'Cinzel', serif;
+      color: var(--gold-bright);
+      font-size: 1.15rem;
+      letter-spacing: 0.15em;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      padding: 3px 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .breakdown-row.holding {
+      color: var(--text-muted);
+      padding-left: 12px;
+    }
+    .breakdown-row.total {
+      border-top: 1px solid var(--gold-border-strong);
+      margin-top: 8px;
+      padding-top: 8px;
+      font-weight: 700;
+      color: var(--gold-bright);
+      font-size: 1rem;
+    }
+    .breakdown-row.tokens-wasted {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    /* Ranking cards */
+    .ranking-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      align-items: center;
+    }
+    .rank-card {
+      width: 100%;
+      max-width: 560px;
+      padding: 18px 26px;
+      border-radius: 12px;
+      background: rgba(13, 27, 42, 0.85);
+      border: 2px solid var(--gold-border);
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .rank-card.reveal {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .rank-card.rank-1 {
+      border: 3px solid var(--gold);
+      box-shadow: 0 0 40px rgba(212, 175, 55, 0.55);
+      background: linear-gradient(180deg, rgba(212, 175, 55, 0.18), rgba(13, 27, 42, 0.9));
+    }
+    .rank-medal {
+      font-size: 2.6rem;
+      flex-shrink: 0;
+    }
+    .rank-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .rank-label {
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+    }
+    .rank-team-name {
+      font-family: 'Cinzel', serif;
+      color: var(--gold-bright);
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+    }
+    .rank-stats {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .rank-stats .total-coins {
+      font-family: 'Cinzel', serif;
+      color: var(--gold-bright);
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+    .rank-stats .points {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* Confetti emoji scatter */
+    .confetti-piece {
+      position: absolute;
+      font-size: 1.5rem;
+      pointer-events: none;
+      animation: confetti-fall 3.5s linear forwards;
+      opacity: 0.9;
+      top: -20px;
+    }
+    @keyframes confetti-fall {
+      0%   { transform: translateY(0)    rotate(0deg);   opacity: 1; }
+      100% { transform: translateY(560px) rotate(360deg); opacity: 0; }
+    }
+
+    /* ============================================================
+       BANK PANEL — DISABLED OVERLAY (game ended)
+       ============================================================ */
+    .bank-disabled-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(13, 27, 42, 0.85);
+      backdrop-filter: blur(2px);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      pointer-events: auto;
+      text-align: center;
+      padding: 20px;
+    }
+    .bank-disabled-overlay.hidden { display: none; }
+    .bank-disabled-title {
+      font-family: 'Cinzel', serif;
+      color: var(--gold);
+      font-size: 1.6rem;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+    }
+    .bank-disabled-sub {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 6px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ============================================================
+       POLISH (Step 5)
+       ============================================================ */
+
+    /* Sound toggle icon button */
+    .sound-toggle {
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(212, 175, 55, 0.1);
+      border: 1px solid var(--gold-border);
+      color: var(--gold-bright);
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .sound-toggle:hover {
+      background: rgba(212, 175, 55, 0.22);
+      border-color: var(--gold);
+    }
+    .sound-toggle.muted { color: var(--text-muted); opacity: 0.6; }
+
+    /* Undo button (Bank Panel) */
+    .btn-undo {
+      background: rgba(212, 175, 55, 0.08);
+      color: var(--gold-bright);
+      border: 1px solid var(--gold);
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+    }
+    .btn-undo:hover:not(:disabled) {
+      background: rgba(212, 175, 55, 0.2);
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+    }
+    .btn-undo:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* Keyboard shortcut hint */
+    .kbd-hint {
+      font-size: 0.66rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      line-height: 1.5;
+      padding: 6px 10px;
+      background: rgba(13, 27, 42, 0.5);
+      border-radius: 4px;
+      border: 1px dashed var(--gold-border);
+    }
+    .kbd-hint kbd {
+      display: inline-block;
+      padding: 1px 5px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.62rem;
+      color: var(--gold-bright);
+      background: rgba(212, 175, 55, 0.12);
+      border: 1px solid var(--gold-border);
+      border-radius: 3px;
+      margin: 0 2px;
+    }
+
+    /* Smooth transitions on common interactive elements */
+    button, .form-select, .form-input {
+      transition: all 0.2s ease-out;
+    }
+    .btn-gold:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(212, 175, 55, 0.45);
+    }
+    .btn-gold:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 2px 6px rgba(212, 175, 55, 0.3);
+    }
+
+    /* Number-pop: dipakai saat saldo koin / token berubah */
+    @keyframes number-pop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.18); color: var(--gold-bright); text-shadow: 0 0 10px rgba(244, 208, 63, 0.6); }
+      100% { transform: scale(1); }
+    }
+    .number-changed {
+      animation: number-pop 0.55s ease-out;
+      display: inline-block;
+    }
+
+    /* ============================================================
+       ACTION SEGMENTED CONTROL — BUY / SELL / HOP (Step 6)
+       ============================================================ */
+    .action-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .action-btn {
+      background: rgba(13, 27, 42, 0.8);
+      border: 2px solid var(--gold-border);
+      border-radius: 8px;
+      padding: 10px 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s ease;
+    }
+    .action-btn:hover:not(.selected) {
+      background: rgba(27, 38, 59, 1);
+      border-color: var(--gold);
+      transform: translateY(-1px);
+    }
+    .action-btn .action-icon { font-size: 1.4em; line-height: 1; }
+    .action-btn .action-label {
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      font-size: 0.95em;
+      color: var(--text-main);
+      letter-spacing: 0.08em;
+    }
+    .action-btn .action-sublabel {
+      font-size: 0.65em;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+
+    /* Selected states per type */
+    .action-btn-buy.selected {
+      background: linear-gradient(135deg, rgba(74, 222, 128, 0.25), rgba(74, 222, 128, 0.05));
+      border-color: var(--green);
+      box-shadow: 0 0 12px rgba(74, 222, 128, 0.25);
+    }
+    .action-btn-sell.selected {
+      background: linear-gradient(135deg, rgba(248, 113, 113, 0.25), rgba(248, 113, 113, 0.05));
+      border-color: var(--red);
+      box-shadow: 0 0 12px rgba(248, 113, 113, 0.25);
+    }
+    .action-btn-hop {
+      /* Even when not selected, HOP gets a gold tint untuk reminder */
+      border-color: rgba(212, 175, 55, 0.55);
+      background: rgba(212, 175, 55, 0.08);
+    }
+    .action-btn-hop:hover:not(.selected) {
+      background: rgba(212, 175, 55, 0.18);
+      border-color: var(--gold);
+    }
+    .action-btn-hop.selected {
+      background: linear-gradient(135deg, var(--gold), #B8941F);
+      border-color: var(--gold-bright);
+      animation: hop-glow 2s ease-in-out infinite;
+    }
+    .action-btn-hop.selected .action-label,
+    .action-btn-hop.selected .action-sublabel {
+      color: #0D1B2A;
+      font-weight: 700;
+    }
+    @keyframes hop-glow {
+      0%, 100% { box-shadow: 0 0 14px rgba(212, 175, 55, 0.45); }
+      50%      { box-shadow: 0 0 28px rgba(212, 175, 55, 0.85); }
+    }
+
+    /* ============================================================
+       BANK INPUT BUTTON SELECTORS (Step 8 — replace dropdowns)
+       Pattern: 3-state opacity (idle 0.55 → hover 0.85 → selected 1)
+       ============================================================ */
+
+    /* === Team buttons (3 wide) === */
+    .team-selector  { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .team-btn {
+      background: rgba(26, 27, 69, 0.7);
+      border: 2px solid rgba(212, 175, 55, 0.2);
+      border-radius: 8px;
+      padding: 10px 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-family: 'Inter', sans-serif;
+      opacity: 0.55;
+    }
+    .team-btn:hover:not(.selected) { opacity: 0.85; border-color: rgba(212, 175, 55, 0.5); }
+    .team-btn.selected {
+      opacity: 1;
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(123, 95, 176, 0.18));
+      border-color: var(--gold-bright);
+      box-shadow: 0 0 18px rgba(212, 175, 55, 0.4);
+    }
+    .team-btn-name {
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      font-size: 0.95em;
+      color: var(--gold-bright);
+      letter-spacing: 0.12em;
+    }
+    .team-btn-meta {
+      font-size: 0.65em;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .team-btn.selected .team-btn-meta { color: var(--text-main); }
+
+    /* === Asset buttons (5 wide) === */
+    .asset-selector { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .asset-btn {
+      background: rgba(26, 27, 69, 0.7);
+      border: 2px solid rgba(212, 175, 55, 0.2);
+      border-radius: 6px;
+      padding: 8px 2px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-family: 'Inter', sans-serif;
+      opacity: 0.55;
+    }
+    .asset-btn:hover:not(.selected) { opacity: 0.85; border-color: rgba(212, 175, 55, 0.5); }
+    .asset-btn.selected {
+      opacity: 1;
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.20), rgba(123, 95, 176, 0.14));
+      border-color: var(--gold-bright);
+      box-shadow: 0 0 14px rgba(212, 175, 55, 0.35);
+    }
+    .asset-btn-ticker {
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      font-size: 0.82em;
+      color: var(--gold-bright);
+      letter-spacing: 0.08em;
+    }
+    .asset-btn-sector { font-size: 0.6em; color: var(--text-muted); }
+    .asset-btn.selected .asset-btn-sector { color: var(--text-main); }
+
+    /* === Session buttons (3 wide) === */
+    .session-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .session-btn {
+      background: rgba(26, 27, 69, 0.7);
+      border: 2px solid rgba(212, 175, 55, 0.2);
+      border-radius: 8px;
+      padding: 10px 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-family: 'Inter', sans-serif;
+      opacity: 0.55;
+    }
+    .session-btn:hover:not(.selected) { opacity: 0.85; border-color: rgba(212, 175, 55, 0.5); }
+    .session-btn.selected {
+      opacity: 1;
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.20), rgba(123, 95, 176, 0.14));
+      border-color: var(--gold-bright);
+      box-shadow: 0 0 14px rgba(212, 175, 55, 0.35);
+    }
+    .session-btn-name {
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      font-size: 0.92em;
+      color: var(--gold-bright);
+      letter-spacing: 0.1em;
+    }
+    .session-btn-time {
+      font-size: 0.7em;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .session-btn.selected .session-btn-time { color: var(--text-main); }
+
+    /* === HOP Sequential picker (red FROM, green TO) === */
+    .hop-session-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .hop-session-btn {
+      background: rgba(26, 27, 69, 0.7);
+      border: 2px solid rgba(212, 175, 55, 0.2);
+      border-radius: 8px;
+      padding: 10px 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      position: relative;
+      opacity: 0.6;
+    }
+    .hop-session-btn:hover { opacity: 0.9; border-color: rgba(212, 175, 55, 0.5); }
+    .hop-session-btn.is-from {
+      opacity: 1;
+      background: linear-gradient(135deg, rgba(248, 113, 113, 0.25), rgba(91, 63, 138, 0.15));
+      border-color: var(--red);
+      box-shadow: 0 0 14px rgba(248, 113, 113, 0.4);
+    }
+    .hop-session-btn.is-to {
+      opacity: 1;
+      background: linear-gradient(135deg, rgba(74, 222, 128, 0.25), rgba(91, 63, 138, 0.15));
+      border-color: var(--green);
+      box-shadow: 0 0 14px rgba(74, 222, 128, 0.4);
+    }
+    .hop-session-tag {
+      position: absolute;
+      top: -8px; right: -8px;
+      background: var(--gold);
+      color: var(--bg-main);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.65em;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      font-family: 'Cinzel', serif;
+    }
+    .hop-session-tag:empty { display: none; }
+    .hop-step-label {
+      font-size: 0.75em;
+      color: var(--gold-warm);
+      font-style: italic;
+      margin-left: 8px;
+    }
+    .hop-reset-btn {
+      margin-top: 8px;
+      background: rgba(248, 113, 113, 0.10);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      color: var(--red);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.72em;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+      letter-spacing: 0.05em;
+    }
+    .hop-reset-btn:hover { background: rgba(248, 113, 113, 0.20); }
+
+    /* === Quantity SLIDER (Step 9) — auto-cap di max === */
+    .qty-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .qty-max-info {
+      font-size: 0.72em;
+      color: var(--gold-warm);
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.08em;
+    }
+    .qty-max-info span {
+      color: var(--gold-bright);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .qty-slider-wrap {
+      position: relative;
+      margin: 6px 0 10px 0;
+      padding: 4px 0;
+    }
+    .qty-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(90deg,
+        rgba(212, 175, 55, 0.18),
+        rgba(123, 95, 176, 0.18)
+      );
+      border-radius: 4px;
+      border: 1px solid var(--gold-border);
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      position: relative;
+      z-index: 2;
+      margin: 0;
+    }
+    .qty-slider:hover { border-color: var(--gold); }
+    .qty-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-bright), var(--gold-warm));
+      border: 2px solid var(--gold-glow);
+      cursor: grab;
+      box-shadow:
+        0 0 12px rgba(212, 175, 55, 0.6),
+        0 2px 4px rgba(0, 0, 0, 0.3);
+      transition: transform 0.15s;
+    }
+    .qty-slider::-webkit-slider-thumb:hover  { transform: scale(1.15); }
+    .qty-slider::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.1); }
+    .qty-slider::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-bright), var(--gold-warm));
+      border: 2px solid var(--gold-glow);
+      cursor: grab;
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.6), 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .qty-slider-track-fill {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 8px;
+      background: linear-gradient(90deg, var(--gold-warm), var(--gold-bright));
+      border-radius: 4px 0 0 4px;
+      pointer-events: none;
+      z-index: 1;
+      width: 0%;
+      transition: width 0.15s;
+      box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+    }
+
+    .qty-slider:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .qty-slider:disabled::-webkit-slider-thumb { cursor: not-allowed; }
+
+    /* === Quantity control (- input + MAX) === */
+    .qty-control {
+      display: grid;
+      grid-template-columns: 40px 1fr 40px 60px;
+      gap: 6px;
+      align-items: stretch;
+    }
+    .qty-btn {
+      background: rgba(212, 175, 55, 0.15);
+      border: 1px solid var(--gold-border);
+      color: var(--gold-bright);
+      border-radius: 6px;
+      font-size: 1.3em;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .qty-btn:hover  { background: rgba(212, 175, 55, 0.30); }
+    .qty-btn:active { transform: scale(0.95); }
+    .qty-input {
+      text-align: center;
+      font-size: 1.15em;
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+    }
+    .qty-max-btn {
+      background: rgba(123, 95, 176, 0.20);
+      border: 1px solid var(--purple-border);
+      color: var(--purple-bright);
+      border-radius: 6px;
+      font-size: 0.78em;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 700;
+    }
+    .qty-max-btn:hover {
+      background: rgba(123, 95, 176, 0.40);
+      color: #FFFFFF;
+    }
+
+    /* === Click-to-fill: holding row hover + quick action buttons === */
+    .holding-row {
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .holding-row:hover {
+      background: rgba(212, 175, 55, 0.10);
+      transform: translateX(2px);
+    }
+    .holding-quick-actions {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+    }
+    .quick-sell-btn,
+    .quick-hop-btn {
+      flex: 1;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.68em;
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      border: 1px solid;
+      transition: all 0.15s;
+    }
+    .quick-sell-btn {
+      background: rgba(248, 113, 113, 0.15);
+      border-color: rgba(248, 113, 113, 0.4);
+      color: var(--red);
+    }
+    .quick-sell-btn:hover  { background: rgba(248, 113, 113, 0.30); }
+    .quick-hop-btn {
+      background: rgba(212, 175, 55, 0.15);
+      border-color: rgba(212, 175, 55, 0.5);
+      color: var(--gold-bright);
+    }
+    .quick-hop-btn:hover { background: rgba(212, 175, 55, 0.30); }
+
+    /* HOP Token info box — di atas form sebagai reminder permanen */
+    .hop-info-box {
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.18), rgba(212, 175, 55, 0.04));
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      border-left: 4px solid var(--gold);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .hop-info-icon { font-size: 1.6em; line-height: 1; }
+    .hop-info-title {
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      font-size: 0.85em;
+      color: var(--gold-bright);
+      letter-spacing: 0.15em;
+    }
+    .hop-info-text {
+      font-size: 0.72em;
+      color: var(--text-muted);
+      line-height: 1.35;
+      margin-top: 2px;
+    }
+
+    /* ============================================================
+       PORTFOLIO BOARD (Step 6 — PNL real-time per tim)
+       ============================================================ */
+    .portfolio-section {
+      /* fits as 4th row in game-grid */
+    }
+    .portfolio-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .portfolio-card {
+      background: linear-gradient(180deg, rgba(35, 36, 86, 0.95), rgba(26, 27, 69, 0.95));
+      border: 1px solid var(--gold-border);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.88em;
+      box-shadow:
+        inset 0 0 30px rgba(123, 95, 176, 0.12),
+        0 4px 12px rgba(15, 18, 48, 0.5);
+    }
+    /* Step 8: Portfolio compact (kolom kiri 60%, 3 kolom horizontal) */
+    .portfolio-card .portfolio-team   { font-size: 0.95em; }
+    .portfolio-card .portfolio-cash-row .value { font-size: 1em; }
+    .portfolio-card .holding-row     { padding: 6px 8px; font-size: 0.85em; }
+    .portfolio-card .holding-ticker .ticker { font-size: 0.85em; }
+    .portfolio-card .holding-detail  { font-size: 0.7em; }
+    .portfolio-card .summary-row     { font-size: 0.82em; }
+    .portfolio-card .total-row .value { font-size: 1.2em; }
+    .portfolio-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--gold-border);
+      padding-bottom: 8px;
+    }
+    .portfolio-team {
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--gold-bright);
+      letter-spacing: 0.15em;
+    }
+    .portfolio-tokens {
+      font-size: 0.85em;
+      color: var(--gold);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .portfolio-cash-row,
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.88em;
+    }
+    .portfolio-cash-row .label,
+    .summary-row .label {
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 0.68em;
+      letter-spacing: 0.12em;
+    }
+    .portfolio-cash-row .value {
+      font-family: 'Cinzel', serif;
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 1.05em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .portfolio-holdings {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .holdings-header {
+      font-size: 0.7em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 2px;
+    }
+    .holdings-empty {
+      font-style: italic;
+      color: var(--text-muted);
+      font-size: 0.78em;
+      padding: 6px;
+      text-align: center;
+      border: 1px dashed var(--gold-border);
+      border-radius: 4px;
+    }
+    .holding-row {
+      background: rgba(13, 27, 42, 0.6);
+      padding: 6px 8px;
+      border-radius: 4px;
+      border-left: 2px solid var(--gold-border-strong);
+      font-variant-numeric: tabular-nums;
+    }
+    .holding-row.up   { border-left-color: var(--green); }
+    .holding-row.down { border-left-color: var(--red); }
+
+    .holding-main {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2px;
+    }
+    .holding-ticker .ticker {
+      font-family: 'Cinzel', serif;
+      font-weight: 600;
+      color: var(--gold-bright);
+      font-size: 0.88em;
+    }
+    .holding-ticker .session-tag {
+      color: var(--text-muted);
+      font-size: 0.7em;
+      margin-left: 4px;
+    }
+    .holding-qty {
+      color: var(--text-main);
+      font-size: 0.78em;
+    }
+    .holding-detail {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72em;
+      gap: 6px;
+    }
+    .holding-prices {
+      color: var(--text-muted);
+      display: flex;
+      gap: 4px;
+      align-items: baseline;
+    }
+    .holding-prices .arrow-mini { color: var(--gold); }
+    .holding-prices .current-price { color: var(--text-main); }
+    .holding-pnl {
+      font-weight: 700;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .pnl-per-unit {
+      font-size: 0.85em;
+      font-family: 'Inter', sans-serif;
+      margin-left: 3px;
+      font-weight: 400;
+      opacity: 0.85;
+    }
+    .pnl-positive { color: var(--green); }
+    .pnl-negative { color: var(--red); }
+    .pnl-neutral  { color: var(--text-muted); }
+
+    .portfolio-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-border-strong), transparent);
+      margin: 4px 0;
+    }
+    .portfolio-summary {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .summary-row .value {
+      font-family: 'Cinzel', serif;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .total-row .label,
+    .pnl-row .label { font-size: 0.78em; }
+    .total-row .value { font-size: 1.25em; font-weight: 700; }
+    .pnl-row .value   { font-size: 1.05em; }
+
+    /* ============================================================
+       AUTO EVENT TRIGGER OVERLAY (Step 7)
+       Saat cue tercapai: timer auto-pause, overlay gelap muncul,
+       tombol gold besar di tengah → penpos klik → popup event tampil.
+       ============================================================ */
+    .event-trigger-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(13, 27, 42, 0.92), rgba(0, 0, 0, 0.97));
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 9000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease-out;
+    }
+    .event-trigger-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .event-trigger-overlay.hidden { display: none; }
+
+    .event-trigger-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      animation: trigger-pulse-content 1s ease-out;
+    }
+    @keyframes trigger-pulse-content {
+      0%   { transform: scale(0.9); opacity: 0; }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+
+    .event-trigger-label {
+      font-family: 'Cinzel', serif;
+      font-size: 1.4em;
+      letter-spacing: 0.3em;
+      color: var(--gold);
+      text-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+      animation: label-flicker 2s ease-in-out infinite;
+      text-align: center;
+    }
+    @keyframes label-flicker {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.7; }
+    }
+
+    .event-trigger-btn {
+      padding: 32px 64px;
+      background: linear-gradient(135deg, #D4AF37, #B8941F, #D4AF37);
+      background-size: 200% 200%;
+      border: 4px solid var(--gold-bright);
+      color: #0D1B2A;
+      font-family: 'Cinzel', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      border-radius: 14px;
+      cursor: pointer;
+      line-height: 1.15;
+      text-align: center;
+      box-shadow:
+        0 0 60px rgba(212, 175, 55, 0.7),
+        0 0 120px rgba(212, 175, 55, 0.3),
+        inset 0 0 30px rgba(255, 215, 100, 0.4);
+      animation:
+        trigger-btn-glow 2s ease-in-out infinite,
+        trigger-btn-shimmer 3s ease-in-out infinite;
+      transition: transform 0.15s ease;
+    }
+    @keyframes trigger-btn-glow {
+      0%, 100% {
+        box-shadow:
+          0 0 60px rgba(212, 175, 55, 0.7),
+          0 0 120px rgba(212, 175, 55, 0.3),
+          inset 0 0 30px rgba(255, 215, 100, 0.4);
+      }
+      50% {
+        box-shadow:
+          0 0 80px rgba(244, 208, 63, 0.9),
+          0 0 160px rgba(212, 175, 55, 0.5),
+          inset 0 0 40px rgba(255, 215, 100, 0.6);
+      }
+    }
+    @keyframes trigger-btn-shimmer {
+      0%, 100% { background-position: 0%   50%; }
+      50%      { background-position: 100% 50%; }
+    }
+    .event-trigger-btn:hover  { transform: scale(1.05); }
+    .event-trigger-btn:active { transform: scale(0.98); }
+
+    .event-trigger-hint {
+      font-size: 0.85em;
+      color: rgba(232, 232, 232, 0.6);
+      letter-spacing: 0.18em;
+      font-style: italic;
+    }
+
+    /* ============================================================
+       AUTO-SELL SETTLEMENT (Step 8 — replace breakdown screen)
+       Phase 1: spinner + "Auto-selling holdings…" 3 detik
+       Phase 2: langsung Final Ranking (skip "Show Final Ranking" btn)
+       ============================================================ */
+    .settlement-phase-autosell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 40px;
+      max-width: 600px;
+      width: 90%;
+      background: linear-gradient(135deg, var(--bg-card-elevated), var(--purple-deep));
+      border: 2px solid var(--gold);
+      border-radius: 16px;
+      box-shadow: 0 0 60px rgba(212, 175, 55, 0.4);
+    }
+
+    .autosell-spinner {
+      font-size: 3em;
+      animation: autosell-spin 1.5s linear infinite;
+    }
+    @keyframes autosell-spin {
+      from { transform: rotate(0deg);   }
+      to   { transform: rotate(360deg); }
+    }
+
+    .autosell-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.5em;
+      color: var(--gold-bright);
+      letter-spacing: 0.18em;
+      text-shadow: 0 0 16px rgba(212, 175, 55, 0.6);
+      text-align: center;
+    }
+
+    .autosell-subtitle {
+      font-size: 0.85em;
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+    }
+
+    .autosell-progress {
+      width: 100%;
+      height: 6px;
+      background: rgba(212, 175, 55, 0.15);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .autosell-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+      width: 0%;
+      animation: autosell-progress 3s ease-in-out forwards;
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.8);
+    }
+    @keyframes autosell-progress {
+      to { width: 100%; }
+    }
+
+    .autosell-log {
+      width: 100%;
+      max-height: 200px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 8px;
+      padding: 12px;
+      background: rgba(15, 18, 48, 0.6);
+      border-radius: 8px;
+      border: 1px solid var(--gold-border);
+      font-variant-numeric: tabular-nums;
+    }
+    .autosell-log-entry {
+      font-size: 0.82em;
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      padding: 2px 0;
+      animation: autosell-entry-fade 0.3s ease-out;
+    }
+    @keyframes autosell-entry-fade {
+      from { opacity: 0; transform: translateX(-10px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ============================================================
+       LAYOUT GRID — TV / projector friendly (1920x1080)
+       ============================================================ */
+    .game-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 16px;
+      box-sizing: border-box;
+      position: relative;  /* di atas starfield */
+      z-index: 1;
+    }
+
+    .middle-grid {
+      display: grid;
+      grid-template-columns: 60fr 40fr;
+      gap: 16px;
+      align-items: start; /* PENTING: panel tidak stretch full-height */
+    }
+
+    /* Step 8: kolom kiri (Market + Portfolio) dan kanan (Bank only) */
+    .left-column,
+    .right-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    /* Portfolio Board section saat di-nested di kolom kiri */
+    .portfolio-section .section-subtitle { display: none; }
+
+    #portfolioBoard {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .market-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .session-col { height: auto; }
+
+    .leaderboard-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    /* Pastikan section pasangan tidak punya margin liar */
+    .portfolio-section,
+    .leaderboard-section {
+      margin: 0;
+    }
+
+    /* ============================================================
+       LEADERBOARD COMPACT (Step 9 — pindah ke kolom kiri)
+       ============================================================ */
+    .leaderboard-section {
+      padding: 16px;
+    }
+    .leaderboard-section .section-title {
+      font-size: 1.05em;
+    }
+    .leaderboard-section .divider-gold {
+      margin-bottom: 10px;
+    }
+    .leaderboard-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    /* Team card jadi compact di kolom kiri */
+    .leaderboard-section .team-card {
+      padding: 12px;
+      font-size: 0.88em;
+    }
+    .leaderboard-section .team-card .font-cinzel {
+      font-size: 0.95em;
+    }
+    .leaderboard-section .team-card .price-tag.text-4xl {
+      font-size: 1.7em;
+      line-height: 1;
+    }
+    .leaderboard-section .team-card .text-lg {
+      font-size: 0.95em;
+    }
+    .leaderboard-section .team-card .divider-gold {
+      margin: 8px 0;
+    }
+    .leaderboard-section .team-card .text-xs.uppercase {
+      font-size: 0.62em;
+      letter-spacing: 0.1em;
+    }
+    .leaderboard-section .team-card .text-gold.text-xs {
+      font-size: 0.65em;
+    }
+    .leaderboard-section .team-card.is-leader {
+      border-color: var(--gold-bright);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-grid">
+
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
+    <header class="panel px-8 py-4 flex items-center justify-between">
+      <div class="flex items-baseline gap-4">
+        <h1 class="font-cinzel text-3xl md:text-4xl font-bold text-gold-bright">
+          HOP &amp; SWAP
+        </h1>
+        <span class="text-muted text-sm tracking-widest hidden md:inline">
+          THE WONDERLAND TIME-MARKET
+        </span>
+      </div>
+
+      <!-- TIMER + CUE DOTS (center area) -->
+      <div class="flex flex-col items-center justify-center">
+        <span class="timer-label">Time Remaining</span>
+        <span id="timerDisplay" class="timer-display">15:00</span>
+        <div id="cueDots" class="cue-dots">
+          <!-- 4 cue dots dengan track diisi oleh renderCueDots() -->
+        </div>
+      </div>
+
+      <!-- PHASE + CONTROL BUTTONS -->
+      <div class="flex flex-col items-end gap-3">
+        <div class="flex items-center gap-2">
+          <span id="phaseIndicator" class="phase-badge">PREPARATION</span>
+          <button id="soundToggle" type="button" class="sound-toggle" title="Toggle sound (M)">🔊</button>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="startBtn"  type="button" class="timer-btn timer-btn-start">▶ Start Game</button>
+          <button id="pauseBtn"  type="button" class="timer-btn timer-btn-pause" style="display: none;">⏸ Pause</button>
+          <button id="resumeBtn" type="button" class="timer-btn timer-btn-resume" style="display: none;">▶ Resume</button>
+          <button id="skipBtn"   type="button" class="btn-skip"
+                  title="Skip ke cue event berikutnya (confirm dialog)">⏭ Skip</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============================================================
+         MIDDLE: MARKET BOARD (60%) + BANK PANEL (40%)
+         ============================================================ -->
+    <section class="middle-grid">
+
+      <!-- KIRI: Market Board + Portfolio Board (Step 8) -->
+      <div class="left-column">
+
+        <!-- MARKET BOARD -->
+        <div class="panel p-6 flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="section-title text-xl">Market Board</h2>
+            <span class="text-muted text-xs tracking-widest uppercase">5 Assets · 3 Sessions</span>
+          </div>
+          <div class="divider-gold mb-4"></div>
+
+          <div id="marketBoard" class="market-grid">
+            <!-- 3 kolom sesi diisi oleh render() -->
+          </div>
+        </div>
+
+        <!-- PORTFOLIO BOARD (pindahan dari bawah, Step 8) -->
+        <div class="panel p-6 portfolio-section">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="section-title text-xl">📊 Portfolio Board</h2>
+            <span class="text-muted text-xs tracking-widest uppercase section-subtitle">Real-time PNL</span>
+          </div>
+          <div class="divider-gold mb-4"></div>
+
+          <div id="portfolioBoard">
+            <!-- 3 kolom diisi oleh renderPortfolioBoard() -->
+          </div>
+        </div>
+
+        <!-- LEADERBOARD (Step 9: pindah ke kolom kiri, compact) -->
+        <div class="panel leaderboard-section">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="section-title">Leaderboard</h2>
+            <span class="text-muted text-xs tracking-widest uppercase">Live Standings</span>
+          </div>
+          <div class="divider-gold mb-3"></div>
+
+          <div id="leaderboard" class="leaderboard-grid">
+            <!-- 3 team card diisi oleh render() -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- KANAN: Bank Panel only -->
+      <div class="right-column">
+
+      <!-- BANK PANEL -->
+      <div class="panel p-6 flex flex-col relative">
+        <!-- Overlay tampil saat game sudah berakhir -->
+        <div id="bankDisabledOverlay" class="bank-disabled-overlay hidden">
+          <div class="bank-disabled-title">GAME ENDED</div>
+          <div class="bank-disabled-sub">See Final Ranking</div>
+        </div>
+
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="section-title text-xl">Bank Input</h2>
+          <span class="text-muted text-xs tracking-widest uppercase">Penpos input transaksi tim</span>
+        </div>
+        <div class="divider-gold mb-4"></div>
+
+        <!-- HOP TOKEN INFO BOX (reminder permanen) -->
+        <div class="hop-info-box">
+          <div class="hop-info-icon">🎟️</div>
+          <div class="hop-info-content">
+            <div class="hop-info-title">HOP TOKEN</div>
+            <div class="hop-info-text">
+              Pindahkan aset antar timeline (Dawn ↔ Noon ↔ Dusk). Tiap tim hanya 3 token.
+            </div>
+          </div>
+        </div>
+
+        <form id="bankForm" class="flex flex-col gap-3" autocomplete="off">
+
+          <!-- TEAM SELECTOR (Step 8: 3 button visible) -->
+          <div>
+            <label class="form-label">Tim</label>
+            <div class="team-selector">
+              <button type="button" class="team-btn selected" data-team="Alpha">
+                <div class="team-btn-name">ALPHA</div>
+                <div class="team-btn-meta" data-team-meta="Alpha">100k · 3🎟</div>
+              </button>
+              <button type="button" class="team-btn" data-team="Beta">
+                <div class="team-btn-name">BETA</div>
+                <div class="team-btn-meta" data-team-meta="Beta">100k · 3🎟</div>
+              </button>
+              <button type="button" class="team-btn" data-team="Gamma">
+                <div class="team-btn-name">GAMMA</div>
+                <div class="team-btn-meta" data-team-meta="Gamma">100k · 3🎟</div>
+              </button>
+            </div>
+            <input type="hidden" id="inputTeam" value="Alpha" />
+          </div>
+
+          <!-- AKSI SELECTOR (existing 3 segmented buttons) -->
+          <div>
+            <label class="form-label">Aksi</label>
+            <div class="action-buttons">
+              <button type="button" class="action-btn action-btn-buy selected" data-action="BUY">
+                <div class="action-icon">📈</div>
+                <div class="action-label">BUY</div>
+                <div class="action-sublabel">Beli aset</div>
+              </button>
+              <button type="button" class="action-btn action-btn-sell" data-action="SELL">
+                <div class="action-icon">📉</div>
+                <div class="action-label">SELL</div>
+                <div class="action-sublabel">Jual aset</div>
+              </button>
+              <button type="button" class="action-btn action-btn-hop" data-action="HOP">
+                <div class="action-icon">⚡</div>
+                <div class="action-label">HOP</div>
+                <div class="action-sublabel">1🎟 + 3💰</div>
+              </button>
+            </div>
+            <input type="hidden" id="inputAction" value="BUY" />
+          </div>
+
+          <!-- ASSET SELECTOR (5 button visible) -->
+          <div>
+            <label class="form-label">Aset</label>
+            <div class="asset-selector">
+              <button type="button" class="asset-btn selected" data-asset="LUMA">
+                <div class="asset-btn-ticker">LUMA</div><div class="asset-btn-sector">Tech</div>
+              </button>
+              <button type="button" class="asset-btn" data-asset="VAUL">
+                <div class="asset-btn-ticker">VAUL</div><div class="asset-btn-sector">Bank</div>
+              </button>
+              <button type="button" class="asset-btn" data-asset="GAIA">
+                <div class="asset-btn-ticker">GAIA</div><div class="asset-btn-sector">Energy</div>
+              </button>
+              <button type="button" class="asset-btn" data-asset="ELIX">
+                <div class="asset-btn-ticker">ELIX</div><div class="asset-btn-sector">Pharma</div>
+              </button>
+              <button type="button" class="asset-btn" data-asset="PORT">
+                <div class="asset-btn-ticker">PORT</div><div class="asset-btn-sector">Logistic</div>
+              </button>
+            </div>
+            <input type="hidden" id="inputAsset" value="LUMA" />
+          </div>
+
+          <!-- SESSION SELECTOR (3 button visible — untuk BUY/SELL) -->
+          <div id="sessionSingleWrap">
+            <label class="form-label">Sesi</label>
+            <div class="session-selector">
+              <button type="button" class="session-btn selected" data-session="Dawn">
+                <div class="session-btn-name">DAWN</div><div class="session-btn-time">09:00</div>
+              </button>
+              <button type="button" class="session-btn" data-session="Noon">
+                <div class="session-btn-name">NOON</div><div class="session-btn-time">12:00</div>
+              </button>
+              <button type="button" class="session-btn" data-session="Dusk">
+                <div class="session-btn-name">DUSK</div><div class="session-btn-time">15:00</div>
+              </button>
+            </div>
+            <input type="hidden" id="inputSession" value="Dawn" />
+          </div>
+
+          <!-- HOP SESSION SELECTOR (sequential From → To click) -->
+          <div id="sessionHopWrap" style="display: none;">
+            <label class="form-label">
+              Sesi HOP — <span id="hopStepLabel" class="hop-step-label">Klik FROM dulu</span>
+            </label>
+            <div class="hop-session-selector">
+              <button type="button" class="hop-session-btn" data-hop-session="Dawn">
+                <div class="session-btn-name">DAWN</div>
+                <div class="session-btn-time">09:00</div>
+                <div class="hop-session-tag" data-hop-tag="Dawn"></div>
+              </button>
+              <button type="button" class="hop-session-btn" data-hop-session="Noon">
+                <div class="session-btn-name">NOON</div>
+                <div class="session-btn-time">12:00</div>
+                <div class="hop-session-tag" data-hop-tag="Noon"></div>
+              </button>
+              <button type="button" class="hop-session-btn" data-hop-session="Dusk">
+                <div class="session-btn-name">DUSK</div>
+                <div class="session-btn-time">15:00</div>
+                <div class="hop-session-tag" data-hop-tag="Dusk"></div>
+              </button>
+            </div>
+            <input type="hidden" id="inputFromSession" value="" />
+            <input type="hidden" id="inputToSession" value="" />
+            <button type="button" id="hopResetBtn" class="hop-reset-btn">↻ Reset Pilihan HOP</button>
+          </div>
+
+          <!-- QUANTITY (Step 9: Slider + Number Input + Buttons, auto-cap) -->
+          <div>
+            <div class="qty-header">
+              <label class="form-label" style="margin: 0;">Quantity</label>
+              <span class="qty-max-info">Max: <span id="qtyMaxValue">—</span></span>
+            </div>
+
+            <!-- SLIDER -->
+            <div class="qty-slider-wrap">
+              <input type="range" id="qtySlider" class="qty-slider"
+                     min="1" max="10" step="1" value="1" />
+              <div class="qty-slider-track-fill" id="qtySliderFill"></div>
+            </div>
+
+            <!-- NUMBER INPUT + CONTROLS -->
+            <div class="qty-control">
+              <button type="button" id="qtyMinusBtn" class="qty-btn">−</button>
+              <input id="inputQty" type="number" min="1" value="1" class="form-input qty-input" />
+              <button type="button" id="qtyPlusBtn" class="qty-btn">+</button>
+              <button type="button" id="qtyMaxBtn" class="qty-max-btn">MAX</button>
+            </div>
+          </div>
+
+          <!-- PREVIEW BOX -->
+          <div>
+            <label class="form-label">Preview</label>
+            <div id="previewBox" class="preview-box text-muted">
+              <span class="text-muted italic">Pilih parameter transaksi…</span>
+            </div>
+          </div>
+
+          <!-- CONFIRM BUTTON -->
+          <button type="submit" id="confirmBtn" class="btn-gold w-full mt-1">
+            Konfirmasi Transaksi
+          </button>
+        </form>
+
+        <!-- TRANSACTION LOG -->
+        <div class="mt-5">
+          <div class="flex items-center justify-between mb-2">
+            <span class="section-title text-sm">5 Transaksi Terakhir</span>
+            <span id="txCount" class="text-muted text-xs">0 total</span>
+          </div>
+          <div class="divider-gold mb-3"></div>
+          <div id="txLog" class="flex flex-col gap-1.5">
+            <div class="text-muted text-xs italic px-2">Belum ada transaksi.</div>
+          </div>
+        </div>
+
+        <!-- EVENT LOG (audit trail) — Step 7: tombol Trigger dipindah ke center modal otomatis -->
+        <div class="mt-5 event-section">
+          <div class="flex items-center justify-between mb-2">
+            <span class="section-title text-sm">Event Log (Audit)</span>
+            <span id="eventStatus" class="text-muted text-xs price-tag">0/4 events triggered</span>
+          </div>
+          <div class="divider-gold mb-3"></div>
+          <div id="eventLog" class="flex flex-col gap-1">
+            <!-- 4 baris log di-render oleh renderEventLog() -->
+          </div>
+        </div>
+
+        <!-- KEYBOARD SHORTCUT HINT -->
+        <div class="mt-4 kbd-hint">
+          ⌨ <kbd>Enter</kbd> Konfirmasi
+          · <kbd>Esc</kbd> Close
+          · <kbd>Space</kbd> Pause
+          · <kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd> Tim
+          · <kbd>B</kbd>/<kbd>S</kbd>/<kbd>H</kbd> Aksi
+          · <kbd>Ctrl</kbd>+<kbd>Z</kbd> Undo
+          · <kbd>M</kbd> Mute
+        </div>
+
+        <!-- ACTION BUTTONS: Undo + Reset -->
+        <div class="mt-auto pt-4 flex justify-between items-center">
+          <button id="undoBtn" type="button" class="btn-undo"
+                  title="Undo last transaction (Ctrl+Z) — max 5 history" disabled>
+            ↶ Undo Last
+            <span id="undoCount" class="opacity-70 ml-1">(0)</span>
+          </button>
+          <button id="resetBtn" type="button" class="btn-danger">
+            Reset Game (Testing Only)
+          </button>
+        </div>
+      </div>
+
+      </div>
+      <!-- /right-column -->
+
+    </section>
+
+  </div>
+
+  <!-- EVENT POPUP OVERLAY -->
+  <div id="eventOverlay" class="event-overlay hidden">
+    <div id="eventCard" class="event-card">
+      <!-- Diisi oleh showEventPopup() -->
+    </div>
+  </div>
+
+  <!-- PAUSE OVERLAY -->
+  <div id="pauseOverlay" class="pause-overlay hidden">
+    <div class="pause-title">⏸ GAME PAUSED</div>
+    <div class="pause-subtitle">Klik RESUME untuk lanjut</div>
+  </div>
+
+  <!-- BIG CUE NOTIFICATION (legacy, Step 7 dipakai untuk warning lain) -->
+  <div id="cueNotification" class="cue-notification"></div>
+
+  <!-- AUTO EVENT TRIGGER OVERLAY (Step 7) -->
+  <div id="eventTriggerOverlay" class="event-trigger-overlay hidden">
+    <div class="event-trigger-content">
+      <div class="event-trigger-label">⏰ TIME DISTORTION DETECTED</div>
+      <button id="eventTriggerBtn" type="button" class="event-trigger-btn">
+        <!-- Diisi oleh showEventTriggerCenter() -->
+      </button>
+      <div class="event-trigger-hint">Klik untuk lanjutkan game</div>
+    </div>
+  </div>
+
+  <!-- SETTLEMENT OVERLAY -->
+  <div id="settlementOverlay" class="settlement-overlay hidden">
+    <div id="settlementCard" class="settlement-card">
+      <!-- Diisi oleh showSettlementScreen() -->
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER (stacks multiple toasts) -->
+  <div id="toastContainer"></div>
+
+  <!-- ============================================================
+       SCRIPT
+       ============================================================ -->
+  <script>
+    // ============================================================
+    // GAME STATE
+    // ============================================================
+    const gameState = {
+      // Phase tracking
+      currentPhase: "preparation", // "preparation" | "trading" | "settlement" | "ended"
+      isGameEnded: false,           // true setelah settlement — disable bank form
+
+      // Timer (Step 4)
+      timer: {
+        totalSeconds:     900,
+        remainingSeconds: 900,
+        isRunning:        false,
+        isPaused:         false,
+        intervalId:       null,
+        cueTriggered: { event1: false, event2: false, event3: false, event4: false }
+      },
+
+      // Settlement (Step 4)
+      settlement: {
+        isExecuted:         false,
+        results:            [],
+        finalPriceSnapshot: null
+      },
+
+      // Market: 5 aset × 3 sesi
+      market: {
+        LUMA: { Dawn: 12, Noon: 14, Dusk: 11 },
+        VAUL: { Dawn: 20, Noon: 19, Dusk: 21 },
+        GAIA: { Dawn: 18, Noon: 21, Dusk: 17 },
+        ELIX: { Dawn: 25, Noon: 24, Dusk: 26 },
+        PORT: { Dawn: 15, Noon: 13, Dusk: 16 }
+      },
+
+      // Track perubahan harga untuk animasi flash
+      priceChanges: {
+        LUMA: { Dawn: "same", Noon: "same", Dusk: "same" },
+        VAUL: { Dawn: "same", Noon: "same", Dusk: "same" },
+        GAIA: { Dawn: "same", Noon: "same", Dusk: "same" },
+        ELIX: { Dawn: "same", Noon: "same", Dusk: "same" },
+        PORT: { Dawn: "same", Noon: "same", Dusk: "same" }
+      },
+
+      // Metadata aset (sektor) untuk display
+      assetMeta: {
+        LUMA: { sector: "Tech & Media" },
+        VAUL: { sector: "Finance"      },
+        GAIA: { sector: "Energy"       },
+        ELIX: { sector: "Healthcare"   },
+        PORT: { sector: "Logistics"    }
+      },
+
+      // 3 tim
+      teams: {
+        Alpha: {
+          coins: 100,
+          hopTokens: 3,
+          holdings: {
+            LUMA: { Dawn: 0, Noon: 0, Dusk: 0 },
+            VAUL: { Dawn: 0, Noon: 0, Dusk: 0 },
+            GAIA: { Dawn: 0, Noon: 0, Dusk: 0 },
+            ELIX: { Dawn: 0, Noon: 0, Dusk: 0 },
+            PORT: { Dawn: 0, Noon: 0, Dusk: 0 }
+          },
+          // Step 6: cost basis tracking untuk Portfolio Board PNL
+          holdingsCost: {
+            LUMA: { Dawn: 0, Noon: 0, Dusk: 0 },
+            VAUL: { Dawn: 0, Noon: 0, Dusk: 0 },
+            GAIA: { Dawn: 0, Noon: 0, Dusk: 0 },
+            ELIX: { Dawn: 0, Noon: 0, Dusk: 0 },
+            PORT: { Dawn: 0, Noon: 0, Dusk: 0 }
+          },
+          transactions: []
+        },
+        Beta: {
+          coins: 100,
+          hopTokens: 3,
+          holdings: {
+            LUMA: { Dawn: 0, Noon: 0, Dusk: 0 },
+            VAUL: { Dawn: 0, Noon: 0, Dusk: 0 },
+            GAIA: { Dawn: 0, Noon: 0, Dusk: 0 },
+            ELIX: { Dawn: 0, Noon: 0, Dusk: 0 },
+            PORT: { Dawn: 0, Noon: 0, Dusk: 0 }
+          },
+          holdingsCost: {
+            LUMA: { Dawn: 0, Noon: 0, Dusk: 0 },
+            VAUL: { Dawn: 0, Noon: 0, Dusk: 0 },
+            GAIA: { Dawn: 0, Noon: 0, Dusk: 0 },
+            ELIX: { Dawn: 0, Noon: 0, Dusk: 0 },
+            PORT: { Dawn: 0, Noon: 0, Dusk: 0 }
+          },
+          transactions: []
+        },
+        Gamma: {
+          coins: 100,
+          hopTokens: 3,
+          holdings: {
+            LUMA: { Dawn: 0, Noon: 0, Dusk: 0 },
+            VAUL: { Dawn: 0, Noon: 0, Dusk: 0 },
+            GAIA: { Dawn: 0, Noon: 0, Dusk: 0 },
+            ELIX: { Dawn: 0, Noon: 0, Dusk: 0 },
+            PORT: { Dawn: 0, Noon: 0, Dusk: 0 }
+          },
+          holdingsCost: {
+            LUMA: { Dawn: 0, Noon: 0, Dusk: 0 },
+            VAUL: { Dawn: 0, Noon: 0, Dusk: 0 },
+            GAIA: { Dawn: 0, Noon: 0, Dusk: 0 },
+            ELIX: { Dawn: 0, Noon: 0, Dusk: 0 },
+            PORT: { Dawn: 0, Noon: 0, Dusk: 0 }
+          },
+          transactions: []
+        }
+      },
+
+      // Event tracking — STEP 3
+      eventsTriggered: 0,    // 0..4
+      isEventLocked:   false, // true saat popup tampil — cegah double-trigger
+      priceHistory:    [],    // snapshot harga sebelum tiap event (audit trail)
+
+      // Step 7: auto-event-trigger center modal
+      pendingEventTrigger: null,  // null | 1 | 2 | 3 | 4
+      isPausedForEvent:    false,
+
+      // Polish — STEP 5
+      undoStack:    [],   // LIFO max 5 entry, snapshot tim sebelum tiap transaksi
+      maxUndoStack: 5,
+
+      // Konfigurasi
+      config: {
+        initialCoins: 100,
+        initialHopTokens: 3,
+        feeBuy: 2,
+        feeSell: 2,
+        hopCost: 3,
+        sessions: ["Dawn", "Noon", "Dusk"],
+        sessionTimes: { Dawn: "09:00", Noon: "12:00", Dusk: "15:00" },
+        assets: ["LUMA", "VAUL", "GAIA", "ELIX", "PORT"],
+        // 4 event terpilih (urutan tetap) — bisa di-edit kalau mau ganti event
+        selectedEvents: ["BI_HIKE", "TECH_BEAT", "LOGISTICS_CRISIS", "EV_SUBSIDY"],
+        // Cue times (remainingSeconds saat tombol event berkedip)
+        // 720 = 12:00, 540 = 9:00, 360 = 6:00, 240 = 4:00
+        cueRemainingSeconds: [720, 540, 360, 240],
+        gameDurationSeconds: 900,
+        soundEnabled: true
+      }
+    };
+
+    // Snapshot harga awal untuk Reset Game (deep clone)
+    const INITIAL_MARKET = JSON.parse(JSON.stringify(gameState.market));
+
+    // ============================================================
+    // EVENT LIBRARY — 8 events (4 dipakai, 4 cadangan)
+    // impacts[asset][session] = persen perubahan harga (0.20 = +20%)
+    // ============================================================
+    const EVENT_LIBRARY = {
+      BI_HIKE: {
+        id: "BI_HIKE",
+        title: "BI NAIKKAN SUKU BUNGA +50bps",
+        description: "Bank Indonesia menaikkan suku bunga. Sektor perbankan menguat, energi terbarukan tertekan di seluruh timeline pasar.",
+        impacts: {
+          VAUL: { Dawn:  0.20, Noon:  0.30, Dusk:  0.25 },
+          GAIA: { Dawn: -0.15, Noon: -0.25, Dusk: -0.20 }
+        }
+      },
+      BI_CUT: {
+        id: "BI_CUT",
+        title: "BI TURUNKAN SUKU BUNGA -25bps",
+        description: "Bank Indonesia menurunkan suku bunga. Energi terbarukan menguat, sektor bank melemah tipis, dan aset growth ikut terdorong.",
+        impacts: {
+          VAUL: { Dawn: -0.05, Noon: -0.10, Dusk: -0.12 },
+          GAIA: { Dawn:  0.12, Noon:  0.18, Dusk:  0.15 },
+          LUMA: { Dawn:  0.05, Noon:  0.05, Dusk:  0.05 }
+        }
+      },
+      EV_SUBSIDY: {
+        id: "EV_SUBSIDY",
+        title: "PEMERINTAH UMUMKAN SUBSIDI BESAR EV & RENEWABLES",
+        description: "Pemerintah mengumumkan subsidi besar untuk kendaraan listrik dan energi hijau. Sektor renewables melonjak, logistik ikut terdorong.",
+        impacts: {
+          GAIA: { Dawn:  0.25, Noon:  0.35, Dusk:  0.30 },
+          PORT: { Dawn:  0.08, Noon:  0.12, Dusk:  0.10 }
+        }
+      },
+      LOGISTICS_CRISIS: {
+        id: "LOGISTICS_CRISIS",
+        title: "KRISIS LOGISTIK GLOBAL / PORT CONGESTION",
+        description: "Gangguan logistik internasional meluas ke seluruh timeline pasar. Sektor logistik terpukul, sementara healthcare mendapat dorongan kecil.",
+        impacts: {
+          PORT: { Dawn: -0.20, Noon: -0.30, Dusk: -0.25 },
+          ELIX: { Dawn:  0.08, Noon:  0.12, Dusk:  0.10 }
+        }
+      },
+      TECH_BEAT: {
+        id: "TECH_BEAT",
+        title: "TECH LABA DI ATAS EKSPEKTASI",
+        description: "Perusahaan teknologi besar merilis laba yang jauh di atas ekspektasi pasar. Sektor teknologi dan media melonjak tajam.",
+        impacts: {
+          LUMA: { Dawn: 0.25, Noon: 0.35, Dusk: 0.30 }
+        }
+      },
+      PANDEMIC: {
+        id: "PANDEMIC",
+        title: "PANDEMI VARIAN BARU TERDETEKSI",
+        description: "Varian baru terdeteksi di Wonderland. Sektor kesehatan melonjak, logistik tertekan, dan teknologi mendapat dorongan moderat.",
+        impacts: {
+          ELIX: { Dawn:  0.20, Noon:  0.30, Dusk:  0.25 },
+          PORT: { Dawn: -0.15, Noon: -0.15, Dusk: -0.15 },
+          LUMA: { Dawn:  0.10, Noon:  0.15, Dusk:  0.12 }
+        }
+      },
+      BANK_SCANDAL: {
+        id: "BANK_SCANDAL",
+        title: "SKANDAL KEUANGAN BANK BESAR",
+        description: "Skandal besar mengguncang sektor keuangan Wonderland. Kepercayaan pasar runtuh dan saham perbankan tertekan tajam.",
+        impacts: {
+          VAUL: { Dawn: -0.25, Noon: -0.35, Dusk: -0.30 },
+          ELIX: { Dawn:  0.05, Noon:  0.05, Dusk:  0.05 }
+        }
+      },
+      INFLATION: {
+        id: "INFLATION",
+        title: "INFLASI MELONJAK & HARGA KOMODITAS NAIK",
+        description: "Inflasi melonjak dan harga komoditas naik di seluruh timeline pasar. Energi hijau terdorong, logistik melemah, dan teknologi ikut tertekan tipis.",
+        impacts: {
+          GAIA: { Dawn:  0.10, Noon:  0.15, Dusk:  0.12 },
+          PORT: { Dawn: -0.12, Noon: -0.18, Dusk: -0.15 },
+          LUMA: { Dawn: -0.05, Noon: -0.05, Dusk: -0.05 }
+        }
+      }
+    };
+
+    // ============================================================
+    // PHASE LABEL HELPER
+    // ============================================================
+    const phaseLabels = {
+      preparation: "PREPARATION",
+      trading:     "TRADING",
+      settlement:  "SETTLEMENT",
+      ended:       "ENDED"
+    };
+
+    // ============================================================
+    // RENDER: MARKET BOARD
+    // ============================================================
+    function renderMarketBoard() {
+      const root = document.getElementById('marketBoard');
+      const { sessions, sessionTimes, assets } = gameState.config;
+
+      let html = '';
+      sessions.forEach((session) => {
+        let rows = '';
+        assets.forEach((ticker) => {
+          const price  = gameState.market[ticker][session];
+          const change = gameState.priceChanges[ticker][session];
+          const sector = gameState.assetMeta[ticker].sector;
+
+          let flashClass = '';
+          let priceColor = 'text-gold';
+          let arrow = '';
+          if (change === 'up')   {
+            flashClass = 'flash-up';
+            priceColor = 'text-up';
+            arrow = '<span class="price-arrow">▲</span>';
+          }
+          if (change === 'down') {
+            flashClass = 'flash-down';
+            priceColor = 'text-down';
+            arrow = '<span class="price-arrow">▼</span>';
+          }
+
+          rows += `
+            <div class="asset-row ${flashClass} flex items-center justify-between px-4 py-3">
+              <div class="flex flex-col">
+                <span class="font-cinzel text-base font-semibold text-gold-bright">${ticker}</span>
+                <span class="text-muted text-xs">${sector}</span>
+              </div>
+              <div class="price-tag text-xl ${priceColor}">
+                ${arrow}${price} <span class="text-muted text-xs font-normal">k</span>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `
+          <div class="session-col flex flex-col">
+            <div class="session-header px-4 py-3 flex items-center justify-between">
+              <span class="font-cinzel text-lg font-semibold text-gold tracking-widest">
+                ${session.toUpperCase()}
+              </span>
+              <span class="text-muted text-sm price-tag">${sessionTimes[session]}</span>
+            </div>
+            <div class="flex flex-col">
+              ${rows}
+            </div>
+          </div>
+        `;
+      });
+
+      root.innerHTML = html;
+    }
+
+    // ============================================================
+    // RENDER: LEADERBOARD
+    // ============================================================
+    function renderLeaderboard() {
+      const root = document.getElementById('leaderboard');
+      const teamNames = Object.keys(gameState.teams);
+
+      // Cari saldo tertinggi untuk highlight leader
+      const topCoins = Math.max(
+        ...teamNames.map((n) => gameState.teams[n].coins)
+      );
+
+      let html = '';
+      teamNames.forEach((name) => {
+        const team = gameState.teams[name];
+        const isLeader = team.coins === topCoins && team.coins > 0;
+
+        html += `
+          <div class="team-card ${isLeader ? 'is-leader' : ''} p-5 flex flex-col">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-cinzel text-xl font-semibold text-gold-bright tracking-widest">
+                TEAM ${name.toUpperCase()}
+              </span>
+              ${isLeader ? '<span class="text-gold text-xs tracking-widest">★ LEADER</span>' : ''}
+            </div>
+            <div class="divider-gold mb-3"></div>
+            <div class="flex items-end justify-between">
+              <div class="flex flex-col">
+                <span class="text-muted text-xs tracking-widest uppercase">Coins</span>
+                <span data-coin-team="${name}" class="font-cinzel text-4xl font-bold text-gold price-tag">${team.coins}</span>
+              </div>
+              <div class="flex flex-col items-end">
+                <span class="text-muted text-xs tracking-widest uppercase">Hop Tokens</span>
+                <span class="text-lg text-gold-bright price-tag">
+                  <span data-token-team="${name}">${team.hopTokens}</span>
+                  <span class="text-muted text-sm">/ ${gameState.config.initialHopTokens}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      root.innerHTML = html;
+      flashLeaderboardChanges();
+    }
+
+    // ============================================================
+    // RENDER: HEADER (phase, timer, controls, cue dots)
+    // ============================================================
+    function renderHeader() {
+      const phaseEl = document.getElementById('phaseIndicator');
+      // Step 9: override label saat reveal phase
+      let phase = phaseLabels[gameState.currentPhase] || 'UNKNOWN';
+      if (gameState.settlement.isExecuted && gameState.timer.remainingSeconds > 0) {
+        phase = '🏆 REVEALING WINNERS';
+      } else if (gameState.isGameEnded && gameState.timer.remainingSeconds === 0) {
+        phase = 'ENDED';
+      }
+      phaseEl.textContent = phase;
+
+      renderTimer();
+      renderTimerControls();
+      renderCueDots();
+    }
+
+    function renderTimer() {
+      const timerEl = document.getElementById('timerDisplay');
+      const remaining = gameState.timer.remainingSeconds;
+      timerEl.textContent = formatTime(remaining);
+
+      // Reset semua kelas dulu (termasuk Step 9: timer-settlement)
+      timerEl.classList.remove('zone-warn', 'zone-critical', 'timer-critical', 'timer-settlement');
+
+      if (gameState.settlement.isExecuted && remaining > 0) {
+        // Step 9: reveal phase — gold bright dengan glow pulse
+        timerEl.classList.add('timer-settlement');
+      } else if (remaining < 120) {
+        timerEl.classList.add('zone-critical', 'timer-critical');
+      } else if (remaining <= 300) {
+        timerEl.classList.add('zone-warn');
+      }
+    }
+
+    function renderTimerControls() {
+      const startBtn  = document.getElementById('startBtn');
+      const pauseBtn  = document.getElementById('pauseBtn');
+      const resumeBtn = document.getElementById('resumeBtn');
+      const skipBtn   = document.getElementById('skipBtn');
+      const t = gameState.timer;
+
+      // START hanya muncul saat timer fresh (tidak running, tidak paused, tidak game ended)
+      const canStart =
+        !t.isRunning && !t.isPaused &&
+        t.remainingSeconds === t.totalSeconds &&
+        !gameState.isGameEnded;
+
+      startBtn.style.display  = canStart ? 'inline-block' : 'none';
+      pauseBtn.style.display  = (t.isRunning && !t.isPaused) ? 'inline-block' : 'none';
+      resumeBtn.style.display = (t.isPaused) ? 'inline-block' : 'none';
+
+      startBtn.disabled  = !canStart;
+      pauseBtn.disabled  = !(t.isRunning && !t.isPaused);
+      resumeBtn.disabled = !t.isPaused;
+
+      // Step 9: dynamic label Skip button + skip-final styling
+      if (skipBtn) {
+        const triggered = gameState.eventsTriggered;
+        if (triggered >= 4 && !gameState.settlement.isExecuted) {
+          skipBtn.innerHTML = '⏭ TO SETTLEMENT';
+          skipBtn.title = 'Skip ke Settlement & Pemenang Reveal (sebelum trading window habis)';
+          skipBtn.classList.add('skip-final');
+        } else {
+          const nextNum = triggered + 1;
+          skipBtn.innerHTML = '⏭ Skip Ev' + nextNum;
+          skipBtn.title = 'Skip timer ke cue Event ' + nextNum;
+          skipBtn.classList.remove('skip-final');
+        }
+
+        const canSkip =
+          (t.isRunning || t.isPaused) &&
+          !gameState.isGameEnded &&
+          !gameState.isEventLocked &&
+          !gameState.settlement.isExecuted;
+        skipBtn.disabled = !canSkip;
+      }
+    }
+
+    // ============================================================
+    // SKIP — jump timer ke cue time event berikutnya (Step 7)
+    // ============================================================
+    function skipToNextEvent() {
+      const triggered = gameState.eventsTriggered;
+
+      // Step 9: Setelah Event 4 → skip langsung ke Settlement
+      if (triggered >= 4) {
+        if (gameState.settlement.isExecuted) {
+          showToast('⚠ Settlement sudah dijalankan', 'warning');
+          return;
+        }
+        if (!gameState.timer.isRunning && !gameState.timer.isPaused) {
+          showToast('⚠ Game tidak sedang berjalan', 'warning');
+          return;
+        }
+        const ok = confirm(
+          'Skip langsung ke Settlement & Pemenang? ' +
+          'Trading window akan ditutup. (Action ini tidak bisa di-undo)'
+        );
+        if (!ok) return;
+        // Set 1 detik di atas trigger threshold → tick berikutnya fire executeSettlementWithReveal
+        gameState.timer.remainingSeconds = 61;
+        showToast('⏭ Skipped to Settlement', 'success');
+        soundConfirm();
+        render();
+        return;
+      }
+
+      // EXISTING: skip ke cue event berikutnya (1-4)
+      if (!gameState.timer.isRunning && !gameState.timer.isPaused) {
+        showToast('⚠ Start game dulu sebelum skip', 'warning');
+        return;
+      }
+      if (gameState.isEventLocked) {
+        showToast('⚠ Event sedang berjalan', 'warning');
+        return;
+      }
+
+      const nextEventNum = triggered + 1;
+      const targetCue    = gameState.config.cueRemainingSeconds[triggered];
+
+      if (gameState.timer.remainingSeconds <= targetCue) {
+        showToast('⚠ Sudah lewat cue time event ini', 'warning');
+        return;
+      }
+
+      const ok = confirm(
+        'Skip timer ke Event ' + nextEventNum + ' cue time? ' +
+        '(Action ini tidak bisa di-undo)'
+      );
+      if (!ok) return;
+
+      // Set 1 detik di atas cue → tick berikutnya akan trigger checkCueNotification
+      gameState.timer.remainingSeconds = targetCue + 1;
+
+      showToast(
+        '⏭ Skipped to Event ' + nextEventNum + ' cue (' + formatTime(targetCue) + ')',
+        'success'
+      );
+      soundConfirm();
+      render();
+    }
+
+    function renderCueDots() {
+      const root = document.getElementById('cueDots');
+      const cues = gameState.config.cueRemainingSeconds; // [720, 540, 360, 240]
+      const remaining = gameState.timer.remainingSeconds;
+      const triggered = gameState.eventsTriggered;
+
+      let html = '';
+      cues.forEach((cueAt, i) => {
+        const eventNum = i + 1;
+        let cls = 'pending';
+        let mark = '';
+
+        if (eventNum <= triggered) {
+          cls = 'done';
+          mark = '✓';
+        } else if (remaining <= cueAt - 30) {
+          // Lewat 30 detik dari cue → overdue
+          cls = 'overdue';
+          mark = '!';
+        } else if (remaining <= cueAt) {
+          // Sudah lewat cue tapi belum di-trigger
+          cls = 'warning';
+        }
+
+        html += `<span class="cue-dot ${cls}" title="Cue ${eventNum} @ ${formatTime(cueAt)}">${mark}</span>`;
+        if (i < cues.length - 1) html += `<span class="cue-dot-track"></span>`;
+      });
+
+      root.innerHTML = html;
+    }
+
+    function formatTime(seconds) {
+      const s = Math.max(0, seconds);
+      const mins = Math.floor(s / 60);
+      const secs = s % 60;
+      return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+    }
+
+    // ============================================================
+    // MAIN RENDER
+    // ============================================================
+    function render() {
+      renderHeader();
+      renderMarketBoard();
+      renderPortfolioBoard();
+      renderLeaderboard();
+      renderTransactionLog();
+      renderEventButtons();
+      renderEventLog();
+      renderUndoButton();
+      refreshTeamButtonMeta(); // Step 8
+    }
+
+    // ============================================================
+    // RENDER: PORTFOLIO BOARD (Step 6 — PNL real-time)
+    // Menampilkan per tim: cash, holdings + avg buy + current price + PNL,
+    // total holdings value, total position, unrealized PNL.
+    // ============================================================
+    function renderPortfolioBoard() {
+      const root = document.getElementById('portfolioBoard');
+      if (!root) return;
+
+      const teamNames = Object.keys(gameState.teams);
+
+      let html = '';
+      teamNames.forEach((name) => {
+        const team = gameState.teams[name];
+
+        let holdingsHtml = '';
+        let totalHoldingsValue = 0;
+        let totalHoldingsCost  = 0;
+        let totalHoldingsCount = 0;
+
+        gameState.config.assets.forEach((asset) => {
+          gameState.config.sessions.forEach((session) => {
+            const qty = team.holdings[asset][session];
+            if (qty <= 0) return;
+
+            const cost         = team.holdingsCost[asset][session];
+            const avgBuy       = qty > 0 ? cost / qty : 0;
+            const currentPrice = gameState.market[asset][session];
+            const currentValue = qty * currentPrice;
+            const pnl          = currentValue - cost;
+            const pnlPerUnit   = currentPrice - avgBuy;
+
+            totalHoldingsValue += currentValue;
+            totalHoldingsCost  += cost;
+            totalHoldingsCount += qty;
+
+            const pnlClass =
+              pnl > 0.05  ? 'pnl-positive' :
+              pnl < -0.05 ? 'pnl-negative' : 'pnl-neutral';
+            const rowClass =
+              pnl > 0.05  ? 'up' :
+              pnl < -0.05 ? 'down' : '';
+            const pnlSign      = pnl >= 0 ? '+' : '';
+            const pnlPerUnitSign = pnlPerUnit >= 0 ? '+' : '';
+
+            holdingsHtml += `
+              <div class="holding-row ${rowClass}"
+                   data-team="${name}" data-asset="${asset}"
+                   data-session="${session}" data-qty="${qty}"
+                   title="Klik untuk auto-fill SELL">
+                <div class="holding-main">
+                  <div class="holding-ticker">
+                    <span class="ticker">${asset}</span>
+                    <span class="session-tag">@ ${session}</span>
+                  </div>
+                  <div class="holding-qty">${qty} unit</div>
+                </div>
+                <div class="holding-detail">
+                  <div class="holding-prices">
+                    <span>Avg ${avgBuy.toFixed(1)}k</span>
+                    <span class="arrow-mini">→</span>
+                    <span class="current-price">Now ${currentPrice}k</span>
+                  </div>
+                  <div class="holding-pnl ${pnlClass}">
+                    ${pnlSign}${pnl.toFixed(0)}k
+                    <span class="pnl-per-unit">(${pnlPerUnitSign}${pnlPerUnit.toFixed(1)}/u)</span>
+                  </div>
+                </div>
+                <div class="holding-quick-actions">
+                  <button type="button" class="quick-sell-btn" data-quick="sell">SELL</button>
+                  <button type="button" class="quick-hop-btn"  data-quick="hop">HOP</button>
+                </div>
+              </div>`;
+          });
+        });
+
+        if (holdingsHtml === '') {
+          holdingsHtml = '<div class="holdings-empty">No holdings — all cash</div>';
+        }
+
+        const totalPosition = team.coins + totalHoldingsValue;
+        const totalPnL      = totalPosition - gameState.config.initialCoins;
+        const totalPnLClass =
+          totalPnL > 0.05  ? 'pnl-positive' :
+          totalPnL < -0.05 ? 'pnl-negative' : 'pnl-neutral';
+        const totalPnLSign  = totalPnL >= 0 ? '+' : '';
+
+        html += `
+          <div class="portfolio-card">
+            <div class="portfolio-header">
+              <span class="portfolio-team">TEAM ${name.toUpperCase()}</span>
+              <span class="portfolio-tokens">🎟️ ${team.hopTokens}/${gameState.config.initialHopTokens}</span>
+            </div>
+
+            <div class="portfolio-cash-row">
+              <span class="label">Cash</span>
+              <span class="value">${team.coins} k</span>
+            </div>
+
+            <div class="portfolio-holdings">
+              <div class="holdings-header">Holdings (${totalHoldingsCount} units)</div>
+              ${holdingsHtml}
+            </div>
+
+            <div class="portfolio-divider"></div>
+
+            <div class="portfolio-summary">
+              <div class="summary-row">
+                <span class="label">Holdings Value</span>
+                <span class="value">${totalHoldingsValue.toFixed(0)} k</span>
+              </div>
+              <div class="summary-row total-row">
+                <span class="label">TOTAL POSITION</span>
+                <span class="value">${totalPosition.toFixed(0)} k</span>
+              </div>
+              <div class="summary-row pnl-row">
+                <span class="label">Unrealized PNL</span>
+                <span class="value ${totalPnLClass}">${totalPnLSign}${totalPnL.toFixed(0)} k</span>
+              </div>
+            </div>
+          </div>`;
+      });
+
+      root.innerHTML = html;
+      // Step 8: re-attach click-to-fill handlers tiap render (innerHTML rebuilds)
+      attachPortfolioClickHandlers();
+    }
+
+    // ============================================================
+    // RENDER: TRANSACTION LOG (5 entry terakhir, semua tim)
+    // ============================================================
+    function renderTransactionLog() {
+      const root = document.getElementById('txLog');
+      const countEl = document.getElementById('txCount');
+
+      // Kumpulkan semua tx dari semua tim
+      const allTx = [];
+      Object.keys(gameState.teams).forEach((teamName) => {
+        gameState.teams[teamName].transactions.forEach((tx) => {
+          allTx.push({ ...tx, team: teamName });
+        });
+      });
+
+      countEl.textContent = `${allTx.length} total`;
+
+      if (allTx.length === 0) {
+        root.innerHTML =
+          '<div class="text-muted text-xs italic px-2">Belum ada transaksi.</div>';
+        return;
+      }
+
+      // Sort terbaru duluan (timestamp descending), ambil 5
+      allTx.sort((a, b) => b.timestamp - a.timestamp);
+      const last5 = allTx.slice(0, 5);
+
+      let html = '';
+      last5.forEach((tx) => {
+        let line = '';
+        let cls  = '';
+        if (tx.type === 'BUY') {
+          cls = 'tx-buy';
+          line = `✓ ${tx.team} BUY ${tx.quantity} ${tx.asset} @ ${tx.session}` +
+                 ` <span class="opacity-80">(-${tx.totalCost} koin)</span>`;
+        } else if (tx.type === 'SELL') {
+          cls = 'tx-sell';
+          line = `✓ ${tx.team} SELL ${tx.quantity} ${tx.asset} @ ${tx.session}` +
+                 ` <span class="opacity-80">(+${tx.totalReceived} koin)</span>`;
+        } else if (tx.type === 'HOP') {
+          cls = 'tx-hop';
+          line = `✓ ${tx.team} HOP ${tx.quantity} ${tx.asset} ${tx.fromSession}→${tx.toSession}` +
+                 ` <span class="opacity-80">(-${gameState.config.hopCost} koin, -1 token)</span>`;
+        }
+
+        html += `<div class="tx-log-entry ${cls}"><span>${line}</span></div>`;
+      });
+
+      root.innerHTML = html;
+    }
+
+    // ============================================================
+    // TRANSACTION LOGIC — BUY
+    // Validasi koin >= total + fee. Eksekusi: kurangi koin, tambah holdings.
+    // ============================================================
+    function executeBuy(team, asset, session, quantity) {
+      const price = gameState.market[asset][session];
+      const totalCost = (price * quantity) + gameState.config.feeBuy;
+
+      if (team.coins < totalCost) {
+        return {
+          success: false,
+          error: `Koin tidak cukup (butuh ${totalCost}, tersedia ${team.coins})`
+        };
+      }
+
+      // Snapshot SEBELUM apply (undo)
+      pushUndoSnapshot('BUY', findTeamName(team), { asset, session, quantity, totalCost });
+
+      team.coins -= totalCost;
+      team.holdings[asset][session]      += quantity;
+      // Cost basis: gross (price × qty), fee dianggap "biaya transaksi" yang sudah di-realize via cash
+      team.holdingsCost[asset][session]  += price * quantity;
+
+      team.transactions.push({
+        type: 'BUY',
+        asset,
+        session,
+        quantity,
+        price,
+        totalCost,
+        timestamp: Date.now()
+      });
+
+      return { success: true };
+    }
+
+    // Helper — find nama tim dari reference object
+    function findTeamName(teamRef) {
+      const names = Object.keys(gameState.teams);
+      for (const n of names) {
+        if (gameState.teams[n] === teamRef) return n;
+      }
+      return null;
+    }
+
+    // ============================================================
+    // TRANSACTION LOGIC — SELL
+    // Validasi: holdings cukup; revenue > fee biar tidak negatif.
+    // ============================================================
+    function executeSell(team, asset, session, quantity) {
+      const price = gameState.market[asset][session];
+      const gross = price * quantity;
+      const fee = gameState.config.feeSell;
+
+      if (team.holdings[asset][session] < quantity) {
+        return {
+          success: false,
+          error: `Holdings ${asset} @ ${session} tidak cukup ` +
+                 `(butuh ${quantity}, tersedia ${team.holdings[asset][session]})`
+        };
+      }
+
+      if (gross <= fee) {
+        return {
+          success: false,
+          error: `Hasil jual (${gross}) tidak menutupi fee (${fee})`
+        };
+      }
+
+      const totalReceived = gross - fee;
+
+      // Snapshot SEBELUM apply (undo)
+      pushUndoSnapshot('SELL', findTeamName(team), { asset, session, quantity, totalReceived });
+
+      // Kurangi cost basis proporsional sebelum pengurangan holdings
+      const ownedBefore = team.holdings[asset][session];
+      const costBefore  = team.holdingsCost[asset][session];
+      const avgCost     = ownedBefore > 0 ? costBefore / ownedBefore : 0;
+      const costRemoved = avgCost * quantity;
+
+      team.coins += totalReceived;
+      team.holdings[asset][session]     -= quantity;
+      team.holdingsCost[asset][session] -= costRemoved;
+      // Bersihkan floating-point residue saat full sell
+      if (team.holdings[asset][session] === 0) {
+        team.holdingsCost[asset][session] = 0;
+      }
+
+      team.transactions.push({
+        type: 'SELL',
+        asset,
+        session,
+        quantity,
+        totalReceived,
+        timestamp: Date.now()
+      });
+
+      return { success: true };
+    }
+
+    // ============================================================
+    // TRANSACTION LOGIC — HOP
+    // Pindahkan holdings antar sesi: 1 Hop Token + 3 koin.
+    // ============================================================
+    function executeHop(team, asset, fromSession, toSession, quantity) {
+      if (fromSession === toSession) {
+        return { success: false, error: 'Sesi asal dan tujuan tidak boleh sama' };
+      }
+      if (team.hopTokens < 1) {
+        return { success: false, error: 'Hop Token habis' };
+      }
+      if (team.coins < gameState.config.hopCost) {
+        return {
+          success: false,
+          error: `Koin tidak cukup untuk biaya hop ` +
+                 `(butuh ${gameState.config.hopCost}, tersedia ${team.coins})`
+        };
+      }
+      if (team.holdings[asset][fromSession] < quantity) {
+        return {
+          success: false,
+          error: `Holdings ${asset} @ ${fromSession} tidak cukup ` +
+                 `(butuh ${quantity}, tersedia ${team.holdings[asset][fromSession]})`
+        };
+      }
+
+      // Snapshot SEBELUM apply (undo)
+      pushUndoSnapshot('HOP', findTeamName(team), { asset, fromSession, toSession, quantity });
+
+      // Pindahkan cost basis proporsional dari fromSession ke toSession
+      // + biaya hop (3 koin) ditambahkan ke cost basis tujuan
+      const ownedBefore = team.holdings[asset][fromSession];
+      const costBefore  = team.holdingsCost[asset][fromSession];
+      const avgCost     = ownedBefore > 0 ? costBefore / ownedBefore : 0;
+      const costMoved   = avgCost * quantity;
+
+      team.hopTokens -= 1;
+      team.coins     -= gameState.config.hopCost;
+
+      team.holdings[asset][fromSession]     -= quantity;
+      team.holdingsCost[asset][fromSession] -= costMoved;
+      if (team.holdings[asset][fromSession] === 0) {
+        team.holdingsCost[asset][fromSession] = 0;
+      }
+
+      team.holdings[asset][toSession]     += quantity;
+      team.holdingsCost[asset][toSession] += costMoved + gameState.config.hopCost;
+
+      team.transactions.push({
+        type: 'HOP',
+        asset,
+        fromSession,
+        toSession,
+        quantity,
+        timestamp: Date.now()
+      });
+
+      return { success: true };
+    }
+
+    // ============================================================
+    // PREVIEW — generate text untuk Preview Box tanpa execute
+    // Mengembalikan { valid, headline, body, errorText }
+    // ============================================================
+    function getPreview(teamName, action, asset, session, quantity, fromSession, toSession) {
+      const team = gameState.teams[teamName];
+      const qty  = parseInt(quantity, 10);
+
+      if (!qty || qty < 1) {
+        return { valid: false, errorText: 'Quantity minimal 1' };
+      }
+
+      if (action === 'BUY') {
+        const price = gameState.market[asset][session];
+        const fee   = gameState.config.feeBuy;
+        const total = price * qty + fee;
+        if (team.coins < total) {
+          return {
+            valid: false,
+            errorText: `Koin tidak cukup (butuh ${total}, tersedia ${team.coins})`
+          };
+        }
+        return {
+          valid: true,
+          headline: `Tim ${teamName} BUY ${qty} ${asset} @ ${session}`,
+          body:
+            `Total: ${qty} × ${price} + ${fee} (fee) = <strong class="text-gold-bright">${total} koin</strong><br>` +
+            `Saldo setelah: ${team.coins} − ${total} = <strong class="text-gold-bright">${team.coins - total} koin</strong>`
+        };
+      }
+
+      if (action === 'SELL') {
+        const price = gameState.market[asset][session];
+        const fee   = gameState.config.feeSell;
+        const gross = price * qty;
+        const owned = team.holdings[asset][session];
+
+        if (owned < qty) {
+          return {
+            valid: false,
+            errorText: `Holdings ${asset} @ ${session} tidak cukup (butuh ${qty}, tersedia ${owned})`
+          };
+        }
+        if (gross <= fee) {
+          return {
+            valid: false,
+            errorText: `Hasil jual (${gross}) tidak menutupi fee (${fee})`
+          };
+        }
+        const net = gross - fee;
+        return {
+          valid: true,
+          headline: `Tim ${teamName} SELL ${qty} ${asset} @ ${session}`,
+          body:
+            `Total: ${qty} × ${price} − ${fee} (fee) = <strong class="text-gold-bright">${net} koin</strong><br>` +
+            `Saldo setelah: ${team.coins} + ${net} = <strong class="text-gold-bright">${team.coins + net} koin</strong>`
+        };
+      }
+
+      if (action === 'HOP') {
+        if (fromSession === toSession) {
+          return { valid: false, errorText: 'Sesi asal dan tujuan tidak boleh sama' };
+        }
+        if (team.hopTokens < 1) {
+          return { valid: false, errorText: 'Hop Token habis' };
+        }
+        if (team.coins < gameState.config.hopCost) {
+          return {
+            valid: false,
+            errorText: `Koin tidak cukup untuk biaya hop ` +
+                       `(butuh ${gameState.config.hopCost}, tersedia ${team.coins})`
+          };
+        }
+        const owned = team.holdings[asset][fromSession];
+        if (owned < qty) {
+          return {
+            valid: false,
+            errorText: `Holdings ${asset} @ ${fromSession} tidak cukup (butuh ${qty}, tersedia ${owned})`
+          };
+        }
+        return {
+          valid: true,
+          headline: `Tim ${teamName} HOP ${qty} ${asset}: ${fromSession} → ${toSession}`,
+          body:
+            `Biaya: 1 Hop Token + ${gameState.config.hopCost} koin<br>` +
+            `Token sisa: ${team.hopTokens} − 1 = <strong class="text-gold-bright">${team.hopTokens - 1} token</strong><br>` +
+            `Saldo setelah: ${team.coins} − ${gameState.config.hopCost} = <strong class="text-gold-bright">${team.coins - gameState.config.hopCost} koin</strong>`
+        };
+      }
+
+      return { valid: false, errorText: 'Aksi tidak dikenali' };
+    }
+
+    // ============================================================
+    // FORM HELPERS — baca input + render preview
+    // ============================================================
+    function readForm() {
+      return {
+        teamName:    document.getElementById('inputTeam').value,
+        action:      document.getElementById('inputAction').value,
+        asset:       document.getElementById('inputAsset').value,
+        session:     document.getElementById('inputSession').value,
+        quantity:    document.getElementById('inputQty').value,
+        fromSession: document.getElementById('inputFromSession').value,
+        toSession:   document.getElementById('inputToSession').value
+      };
+    }
+
+    function updatePreview() {
+      const f = readForm();
+      const wrapSingle = document.getElementById('sessionSingleWrap');
+      const wrapHop    = document.getElementById('sessionHopWrap');
+      const qtyInput   = document.getElementById('inputQty');
+
+      // Toggle session inputs sesuai aksi
+      if (f.action === 'HOP') {
+        wrapSingle.style.display = 'none';
+        wrapHop.style.display    = 'block';
+      } else {
+        wrapSingle.style.display = 'block';
+        wrapHop.style.display    = 'none';
+      }
+
+      // Quantity tetap muncul di semua aksi (untuk HOP = qty subset holdings)
+      qtyInput.disabled = false;
+
+      // Step 8: HOP butuh FROM + TO sebelum preview valid
+      if (f.action === 'HOP' && (!f.fromSession || !f.toSession)) {
+        const previewBox = document.getElementById('previewBox');
+        const confirmBtn = document.getElementById('confirmBtn');
+        previewBox.classList.remove('is-valid');
+        previewBox.classList.remove('is-error');
+        previewBox.innerHTML =
+          '<div class="preview-headline" style="color: var(--gold-warm);">⚡ HOP — STEP IN PROGRESS</div>' +
+          '<div>Pilih <b>FROM session</b> dan <b>TO session</b> dulu di atas.</div>';
+        confirmBtn.disabled = true;
+        return;
+      }
+
+      const result = getPreview(
+        f.teamName, f.action, f.asset, f.session, f.quantity, f.fromSession, f.toSession
+      );
+
+      const previewBox = document.getElementById('previewBox');
+      const confirmBtn = document.getElementById('confirmBtn');
+
+      if (result.valid) {
+        previewBox.classList.remove('is-error');
+        previewBox.classList.add('is-valid');
+        previewBox.innerHTML =
+          `<div class="preview-headline">${result.headline}</div>` +
+          `<div>${result.body}</div>`;
+        confirmBtn.disabled = false;
+      } else {
+        previewBox.classList.remove('is-valid');
+        previewBox.classList.add('is-error');
+        previewBox.innerHTML =
+          `<div class="preview-headline">⚠ ERROR</div>` +
+          `<div>${result.errorText}</div>`;
+        confirmBtn.disabled = true;
+      }
+    }
+
+    // ============================================================
+    // CONFIRM HANDLER
+    // ============================================================
+    function handleConfirm(e) {
+      if (e) e.preventDefault();
+      if (gameState.isGameEnded) {
+        showToast('⚠ Game telah berakhir', 'error');
+        return;
+      }
+      const f = readForm();
+      const team = gameState.teams[f.teamName];
+      const qty  = parseInt(f.quantity, 10);
+
+      let result;
+      if (f.action === 'BUY') {
+        result = executeBuy(team, f.asset, f.session, qty);
+      } else if (f.action === 'SELL') {
+        result = executeSell(team, f.asset, f.session, qty);
+      } else if (f.action === 'HOP') {
+        result = executeHop(team, f.asset, f.fromSession, f.toSession, qty);
+      } else {
+        result = { success: false, error: 'Aksi tidak dikenali' };
+      }
+
+      if (result.success) {
+        soundConfirm();
+        validateGameState();
+        showToast('✓ Transaksi berhasil', 'success');
+        // Reset form: tim tetap, aksi balik ke BUY (juga update tombol visual), qty 1
+        selectAction('BUY');
+        document.getElementById('inputQty').value = '1';
+        render();
+        updatePreview();
+      } else {
+        soundError();
+        showToast('⚠ ' + result.error, 'error');
+      }
+    }
+
+    // ============================================================
+    // RESET GAME — full reset: tim, market, events, timer, settlement
+    // ============================================================
+    function resetGame(skipConfirm) {
+      if (!skipConfirm && !confirm('Yakin reset semua tim ke kondisi awal?')) return;
+
+      // Stop timer kalau jalan
+      if (gameState.timer.intervalId) {
+        clearInterval(gameState.timer.intervalId);
+        gameState.timer.intervalId = null;
+      }
+
+      // Reset tim
+      Object.keys(gameState.teams).forEach((name) => {
+        const team = gameState.teams[name];
+        team.coins     = gameState.config.initialCoins;
+        team.hopTokens = gameState.config.initialHopTokens;
+        team.transactions = [];
+        gameState.config.assets.forEach((asset) => {
+          gameState.config.sessions.forEach((session) => {
+            team.holdings[asset][session]     = 0;
+            team.holdingsCost[asset][session] = 0;
+          });
+        });
+      });
+
+      // Reset market ke snapshot awal
+      gameState.market = JSON.parse(JSON.stringify(INITIAL_MARKET));
+
+      // Reset price changes
+      gameState.config.assets.forEach((asset) => {
+        gameState.config.sessions.forEach((session) => {
+          gameState.priceChanges[asset][session] = 'same';
+        });
+      });
+
+      // Reset event tracking
+      gameState.eventsTriggered     = 0;
+      gameState.isEventLocked       = false;
+      gameState.priceHistory        = [];
+      gameState.pendingEventTrigger = null;
+      gameState.isPausedForEvent    = false;
+      hideEventTriggerCenter();
+
+      // Reset timer
+      gameState.timer.totalSeconds     = gameState.config.gameDurationSeconds;
+      gameState.timer.remainingSeconds = gameState.config.gameDurationSeconds;
+      gameState.timer.isRunning        = false;
+      gameState.timer.isPaused         = false;
+      gameState.timer.cueTriggered     = { event1: false, event2: false, event3: false, event4: false };
+
+      // Reset settlement
+      gameState.settlement.isExecuted         = false;
+      gameState.settlement.results            = [];
+      gameState.settlement.finalPriceSnapshot = null;
+
+      // Reset phase + game-end flag
+      gameState.currentPhase = 'preparation';
+      gameState.isGameEnded  = false;
+
+      // Reset polish state
+      gameState.undoStack = [];
+      Object.keys(_prevTeamStats).forEach((n) => {
+        _prevTeamStats[n] = {
+          coins:  gameState.config.initialCoins,
+          tokens: gameState.config.initialHopTokens
+        };
+      });
+      clearAutoSave();
+
+      // Hide overlays bila masih tampil
+      hidePauseOverlay();
+      hideSettlementScreen();
+      enableBankForm();
+
+      render();
+      updatePreview();
+      showToast('✓ Game di-reset', 'success');
+    }
+
+    // ============================================================
+    // SHOCK EVENTS — apply impacts ke market (Step 6 revision)
+    // priceChanges TIDAK direset di sini — biar arrow + border kiri
+    // tetap visible sampai event berikutnya di-trigger atau reset
+    // ============================================================
+    function applyEventImpacts(event) {
+      for (const asset in event.impacts) {
+        for (const session in event.impacts[asset]) {
+          const oldPrice  = gameState.market[asset][session];
+          const newPrice  = Math.round(oldPrice * (1 + event.impacts[asset][session]));
+
+          if (newPrice > oldPrice)      gameState.priceChanges[asset][session] = 'up';
+          else if (newPrice < oldPrice) gameState.priceChanges[asset][session] = 'down';
+          else                          gameState.priceChanges[asset][session] = 'same';
+
+          gameState.market[asset][session] = newPrice;
+        }
+      }
+    }
+
+    // ============================================================
+    // SHOCK EVENTS — trigger event N (1..4)
+    // Sequential: hanya enable kalau eventNumber === eventsTriggered + 1
+    // ============================================================
+    function triggerEvent(eventNumber) {
+      if (gameState.isEventLocked) return;
+      if (eventNumber !== gameState.eventsTriggered + 1) return;
+      if (eventNumber > 4) return;
+
+      gameState.isEventLocked = true;
+
+      const eventId = gameState.config.selectedEvents[eventNumber - 1];
+      const event   = EVENT_LIBRARY[eventId];
+      if (!event) {
+        gameState.isEventLocked = false;
+        showToast('⚠ Event tidak ditemukan: ' + eventId, 'error');
+        return;
+      }
+
+      // Snapshot harga sebelum event (audit trail)
+      gameState.priceHistory.push({
+        eventNumber,
+        eventId,
+        timestamp:    new Date().toISOString(),
+        pricesBefore: JSON.parse(JSON.stringify(gameState.market))
+      });
+
+      // Reset arrow + border kiri dari event SEBELUMNYA supaya yang baru
+      // jadi reveal yang kontras
+      for (const asset in gameState.priceChanges) {
+        for (const session in gameState.priceChanges[asset]) {
+          gameState.priceChanges[asset][session] = 'same';
+        }
+      }
+
+      soundEventTrigger();
+      showEventPopup(event, eventNumber);
+
+      // Re-render tombol agar status "active" hilang sementara popup tampil
+      // (juga clears arrow lama di Market Board sebelum di-cover popup)
+      render();
+
+      // T+0.1s — apply price changes ke STATE saja (silent, popup masih cover)
+      // Sengaja TIDAK render — biar peserta tidak lihat angka berubah
+      // di balik popup yang gelap
+      setTimeout(() => {
+        applyEventImpacts(event);
+      }, 100);
+
+      // T+8s — popup mulai fade-out (slow, 2 detik)
+      setTimeout(() => {
+        const overlay = document.getElementById('eventOverlay');
+        if (overlay) {
+          overlay.style.transition = 'opacity 2s ease-out';
+          overlay.style.opacity = '0';
+        }
+      }, 8000);
+
+      // T+10s — popup full hidden, render Market Board → DRAMATIC REVEAL
+      // (flash + arrow + border kiri muncul saat user FOKUS ke harga)
+      setTimeout(() => {
+        hideEventPopup();
+        // Reset inline style biar overlay siap dipakai event berikutnya
+        const overlay = document.getElementById('eventOverlay');
+        if (overlay) {
+          overlay.style.transition = '';
+          overlay.style.opacity = '';
+        }
+        gameState.eventsTriggered++;
+        gameState.isEventLocked       = false;
+        gameState.pendingEventTrigger = null;
+        gameState.isPausedForEvent    = false;
+        render();
+
+        // Step 7: AUTO RESUME timer (kalau sebelumnya pause karena auto-trigger)
+        if (gameState.timer.remainingSeconds > 0 && !gameState.isGameEnded) {
+          startTimer();
+          showToast('▶ Timer resumed', 'info', 2000);
+        }
+      }, 10000);
+    }
+
+    // ============================================================
+    // SHOCK EVENTS — popup show / hide
+    // ============================================================
+    function buildImpactsList(impacts) {
+      const sectorIcon = {
+        LUMA: '🜨', VAUL: '⚖', GAIA: '✦', ELIX: '☤', PORT: '⚓'
+      };
+      let html = '';
+      for (const asset in impacts) {
+        const sessions = impacts[asset];
+        const cells = gameState.config.sessions.map((s) => {
+          if (sessions[s] === undefined) {
+            return `
+              <div class="impact-session-cell">
+                <span class="label">${s}</span>
+                <span class="text-muted">—</span>
+              </div>`;
+          }
+          const pct = sessions[s] * 100;
+          const cls = pct >= 0 ? 'impact-pos' : 'impact-neg';
+          const sign = pct >= 0 ? '+' : '';
+          return `
+            <div class="impact-session-cell">
+              <span class="label">${s}</span>
+              <span class="${cls}">${sign}${pct.toFixed(0)}%</span>
+            </div>`;
+        }).join('');
+
+        html += `
+          <div class="impact-row">
+            <div class="impact-asset">
+              <span>${sectorIcon[asset] || '◆'}</span>
+              <span>${asset}</span>
+            </div>
+            <div class="impact-sessions">${cells}</div>
+          </div>`;
+      }
+      return html;
+    }
+
+    function showEventPopup(event, eventNumber) {
+      const overlay = document.getElementById('eventOverlay');
+      const card    = document.getElementById('eventCard');
+
+      card.innerHTML = `
+        <div class="event-counter">EVENT ${eventNumber}/4</div>
+        <div class="event-eyebrow">⚡ Time Distortion Event</div>
+        <h2 class="event-title">${event.title}</h2>
+        <p class="event-description">${event.description}</p>
+        <div class="event-impacts-title">Dampak Harga</div>
+        <div class="event-impacts">${buildImpactsList(event.impacts)}</div>
+        <div class="event-progress">
+          <div class="progress-bar"></div>
+        </div>
+      `;
+
+      overlay.classList.remove('hidden');
+      // Force reflow lalu .show untuk trigger transition
+      void overlay.offsetWidth;
+      overlay.classList.add('show');
+
+      // Trigger progress bar animation 10s
+      const bar = card.querySelector('.progress-bar');
+      void bar.offsetWidth;
+      bar.classList.add('run');
+    }
+
+    function hideEventPopup() {
+      const overlay = document.getElementById('eventOverlay');
+      overlay.classList.remove('show');
+      setTimeout(() => overlay.classList.add('hidden'), 500);
+    }
+
+    // ============================================================
+    // RENDER: EVENT BUTTONS
+    // ============================================================
+    function renderEventButtons() {
+      const root      = document.getElementById('eventButtons');
+      const statusEl  = document.getElementById('eventStatus');
+      const triggered = gameState.eventsTriggered;
+
+      // Status counter masih dipakai di Event Log section (Step 7)
+      if (statusEl) {
+        statusEl.textContent =
+          triggered >= 4 ? '4/4 events completed' : `${triggered}/4 events triggered`;
+      }
+      // Step 7: tombol manual trigger sudah dihapus — exit kalau elemennya gone
+      if (!root) return;
+
+      const labels = {
+        BI_HIKE: 'BI Hike',
+        BI_CUT: 'BI Cut',
+        EV_SUBSIDY: 'EV Subsidy',
+        LOGISTICS_CRISIS: 'Logistics Crisis',
+        TECH_BEAT: 'Tech Beat',
+        PANDEMIC: 'Pandemic',
+        BANK_SCANDAL: 'Bank Scandal',
+        INFLATION: 'Inflation'
+      };
+
+      const cueKey = (n) => `event${n}`;
+
+      let html = '';
+      for (let n = 1; n <= 4; n++) {
+        const eventId = gameState.config.selectedEvents[n - 1];
+        const label   = labels[eventId] || eventId;
+        const isDone   = n <= triggered;
+        const isActive = n === triggered + 1 && !gameState.isEventLocked && !gameState.isGameEnded;
+        const isCued   = isActive && gameState.timer.cueTriggered[cueKey(n)];
+
+        let cls = isDone ? 'done' : (isActive ? 'active' : 'locked');
+        if (isCued) cls += ' cue-ready';
+
+        const disabled = (isDone || !isActive) ? 'disabled' : '';
+        const marker   = isDone ? '✓' : (isActive ? '►' : '·');
+
+        html += `
+          <button type="button"
+                  data-event-num="${n}"
+                  class="event-btn ${cls}"
+                  ${disabled}>
+            <span>${marker} Trigger Event ${n}: ${label}</span>
+            <span class="opacity-70 text-xs">${eventId}</span>
+          </button>
+        `;
+      }
+      root.innerHTML = html;
+
+      // Wire click — re-bind setiap render (event-btn di-rebuild)
+      root.querySelectorAll('.event-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const n = parseInt(btn.dataset.eventNum, 10);
+          triggerEvent(n);
+        });
+      });
+    }
+
+    // ============================================================
+    // RENDER: EVENT LOG
+    // ============================================================
+    function renderEventLog() {
+      const root      = document.getElementById('eventLog');
+      const triggered = gameState.eventsTriggered;
+
+      let html = '';
+      for (let n = 1; n <= 4; n++) {
+        const eventId = gameState.config.selectedEvents[n - 1];
+        const isDone  = n <= triggered;
+        const status  = isDone
+          ? '<span class="status-done">triggered ✓</span>'
+          : '<span class="status-pending">pending</span>';
+        html += `
+          <div class="event-log-line">
+            <span class="text-muted">Event ${n}: <span class="text-gold-bright">${eventId}</span></span>
+            ${status}
+          </div>
+        `;
+      }
+      root.innerHTML = html;
+    }
+
+    // ============================================================
+    // TIMER — start / pause / resume / stop
+    // ============================================================
+    function startTimer() {
+      if (gameState.timer.isRunning) return;
+      if (gameState.isGameEnded) return;
+
+      gameState.timer.isRunning = true;
+      gameState.timer.isPaused  = false;
+      gameState.currentPhase    = 'trading';
+
+      // Tick tiap 1 detik
+      gameState.timer.intervalId = setInterval(() => {
+        gameState.timer.remainingSeconds--;
+
+        // Cek cue notification (12:00, 9:00, 6:00, 4:00)
+        checkCueNotification();
+
+        // Tick sound 10 detik SEBELUM settlement (saat 70 → 61 detik)
+        if (gameState.timer.remainingSeconds > 60 && gameState.timer.remainingSeconds <= 70) {
+          soundTimerTick();
+        }
+
+        // Step 9: AUTO-TRIGGER SETTLEMENT di remaining 60 detik (1:00)
+        // Trading window ditutup, sisa 60 detik = REVEALING WINNERS phase
+        if (gameState.timer.remainingSeconds <= 60 && !gameState.settlement.isExecuted) {
+          gameState.timer.remainingSeconds = 60; // freeze tepat di 1:00
+          stopTimer();
+          executeSettlementWithReveal();
+          render();
+          return;
+        }
+
+        // Reveal phase countdown sampai 0 (timer terus jalan visual saja)
+        if (gameState.timer.remainingSeconds <= 0) {
+          gameState.timer.remainingSeconds = 0;
+          stopTimer();
+          render();
+          return;
+        }
+
+        render();
+      }, 1000);
+
+      render();
+    }
+
+    // ============================================================
+    // STEP 9: SETTLEMENT WITH REVEAL — execute + display countdown
+    // ============================================================
+    function executeSettlementWithReveal() {
+      if (gameState.settlement.isExecuted) return;
+      // executeSettlement() existing sudah call disableBankForm + showSettlementScreen
+      // (auto-sell animation 3.5s → renderFinalRanking) — tidak perlu double call
+      executeSettlement();
+      startSettlementCountdown();  // visual countdown 60 → 0 selama reveal
+    }
+
+    function startSettlementCountdown() {
+      // Stop interval lama jaga-jaga
+      if (gameState.timer.intervalId) {
+        clearInterval(gameState.timer.intervalId);
+        gameState.timer.intervalId = null;
+      }
+      gameState.timer.intervalId = setInterval(() => {
+        if (gameState.timer.remainingSeconds <= 0) {
+          gameState.timer.remainingSeconds = 0;
+          clearInterval(gameState.timer.intervalId);
+          gameState.timer.intervalId = null;
+          render();
+          return;
+        }
+        gameState.timer.remainingSeconds--;
+        render();
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      if (!gameState.timer.isRunning) return;
+      // Step 7: jangan pause manual saat event sedang berjalan / center modal aktif
+      if (gameState.isEventLocked || gameState.isPausedForEvent) return;
+      clearInterval(gameState.timer.intervalId);
+      gameState.timer.intervalId = null;
+      gameState.timer.isRunning  = false;
+      gameState.timer.isPaused   = true;
+      showPauseOverlay();
+      render();
+    }
+
+    function resumeTimer() {
+      if (!gameState.timer.isPaused) return;
+      gameState.timer.isPaused = false;
+      hidePauseOverlay();
+      startTimer();
+    }
+
+    function stopTimer() {
+      if (gameState.timer.intervalId) {
+        clearInterval(gameState.timer.intervalId);
+        gameState.timer.intervalId = null;
+      }
+      gameState.timer.isRunning = false;
+      gameState.timer.isPaused  = false;
+    }
+
+    // ============================================================
+    // CUE NOTIFICATION — fire saat menit 3, 6, 9, 11 elapsed
+    // ============================================================
+    function checkCueNotification() {
+      const remaining = gameState.timer.remainingSeconds;
+      const cues      = gameState.config.cueRemainingSeconds; // [720, 540, 360, 240]
+      const flags     = gameState.timer.cueTriggered;
+
+      cues.forEach((cueAt, i) => {
+        const key = `event${i + 1}`;
+        if (!flags[key] && remaining === cueAt) {
+          flags[key] = true;
+          // Step 7: auto-pause + tampilkan center modal trigger
+          autoTriggerEventCenter(i + 1);
+        }
+      });
+    }
+
+    // ============================================================
+    // AUTO TRIGGER EVENT (Step 7) — pause timer + show center modal
+    // ============================================================
+    function autoTriggerEventCenter(eventNumber) {
+      // Auto-pause timer (jangan pakai pauseTimer karena dia show pause overlay)
+      if (gameState.timer.isRunning) {
+        clearInterval(gameState.timer.intervalId);
+        gameState.timer.intervalId = null;
+        gameState.timer.isRunning  = false;
+      }
+
+      gameState.pendingEventTrigger = eventNumber;
+      gameState.isPausedForEvent    = true;
+
+      soundCue();
+      showEventTriggerCenter(eventNumber);
+      render();
+    }
+
+    function showEventTriggerCenter(eventNumber) {
+      const overlay = document.getElementById('eventTriggerOverlay');
+      const btn     = document.getElementById('eventTriggerBtn');
+      if (!overlay || !btn) return;
+
+      const eventId = gameState.config.selectedEvents[eventNumber - 1];
+      const event   = EVENT_LIBRARY[eventId];
+      // Ambil 4 kata pertama dari title biar tombol tidak overflow
+      const eventTitle = event
+        ? event.title.split(' ').slice(0, 5).join(' ')
+        : eventId;
+
+      btn.innerHTML =
+        '⚡ TRIGGER EVENT ' + eventNumber +
+        '<br><span style="font-size: 0.55em; letter-spacing: 0.2em; opacity: 0.85;">' +
+        eventTitle + '</span>';
+
+      // Replace handler (avoid double-bind)
+      btn.onclick = () => {
+        hideEventTriggerCenter();
+        triggerEvent(eventNumber);
+      };
+
+      overlay.classList.remove('hidden');
+      void overlay.offsetWidth;
+      overlay.classList.add('show');
+    }
+
+    function hideEventTriggerCenter() {
+      const overlay = document.getElementById('eventTriggerOverlay');
+      if (!overlay) return;
+      overlay.classList.remove('show');
+      setTimeout(() => overlay.classList.add('hidden'), 400);
+    }
+
+    let cueNotifTimer = null;
+    function showCueNotification(eventNumber) {
+      const eventId = gameState.config.selectedEvents[eventNumber - 1];
+      const el = document.getElementById('cueNotification');
+      el.innerHTML =
+        `🔔 EVENT ${eventNumber} READY — ${eventId}<br>` +
+        `<span style="font-size: 0.75rem; letter-spacing: 0.18em; opacity: 0.85;">` +
+        `Klik tombol "Trigger Event ${eventNumber}"</span>`;
+
+      // Force reflow untuk re-trigger transition
+      void el.offsetWidth;
+      el.classList.add('show');
+      soundCue();
+
+      if (cueNotifTimer) clearTimeout(cueNotifTimer);
+      cueNotifTimer = setTimeout(() => {
+        el.classList.remove('show');
+      }, 5000);
+    }
+
+    // ============================================================
+    // PAUSE OVERLAY
+    // ============================================================
+    function showPauseOverlay() {
+      const el = document.getElementById('pauseOverlay');
+      el.classList.remove('hidden');
+      void el.offsetWidth;
+      el.classList.add('show');
+    }
+    function hidePauseOverlay() {
+      const el = document.getElementById('pauseOverlay');
+      el.classList.remove('show');
+      setTimeout(() => el.classList.add('hidden'), 300);
+    }
+
+    // ============================================================
+    // BANK FORM enable / disable (game ended)
+    // ============================================================
+    function disableBankForm() {
+      // Disable inputs + tombol
+      const ids = [
+        'inputTeam', 'inputAction', 'inputAsset',
+        'inputSession', 'inputFromSession', 'inputToSession',
+        'inputQty', 'confirmBtn'
+      ];
+      ids.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = true;
+      });
+      // Tampilkan overlay "GAME ENDED"
+      document.getElementById('bankDisabledOverlay').classList.remove('hidden');
+    }
+
+    function enableBankForm() {
+      const ids = [
+        'inputTeam', 'inputAction', 'inputAsset',
+        'inputSession', 'inputFromSession', 'inputToSession',
+        'inputQty'
+      ];
+      ids.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = false;
+      });
+      // confirmBtn disable/enable di-handle oleh updatePreview()
+      document.getElementById('bankDisabledOverlay').classList.add('hidden');
+    }
+
+    // ============================================================
+    // SETTLEMENT — auto-execute saat timer = 0
+    // Rumus: avgPrice = (Dawn + Noon + Dusk) / 3 per asset
+    //        settlementValue = sum(qty × avgPrice) round per asset
+    //        totalFinal = team.coins + settlementValue
+    // ============================================================
+    function executeSettlement() {
+      if (gameState.settlement.isExecuted) return;
+
+      // Snapshot harga final
+      gameState.settlement.finalPriceSnapshot =
+        JSON.parse(JSON.stringify(gameState.market));
+
+      const teamNames = Object.keys(gameState.teams);
+      const results = teamNames.map((teamName) => {
+        const team = gameState.teams[teamName];
+        let settlementValue = 0;
+        const holdingsBreakdown = [];
+
+        gameState.config.assets.forEach((asset) => {
+          let totalQty = 0;
+          gameState.config.sessions.forEach((session) => {
+            totalQty += team.holdings[asset][session];
+          });
+          if (totalQty > 0) {
+            const avgPrice =
+              (gameState.market[asset].Dawn +
+               gameState.market[asset].Noon +
+               gameState.market[asset].Dusk) / 3;
+            const value = Math.round(totalQty * avgPrice);
+            settlementValue += value;
+            holdingsBreakdown.push({
+              asset,
+              quantity: totalQty,
+              avgPrice: avgPrice.toFixed(2),
+              value
+            });
+          }
+        });
+
+        return {
+          team:            teamName,
+          cash:            team.coins,
+          holdings:        holdingsBreakdown,
+          settlementValue,
+          totalFinal:      team.coins + settlementValue,
+          hopTokensWasted: team.hopTokens
+        };
+      });
+
+      // Sort desc
+      results.sort((a, b) => b.totalFinal - a.totalFinal);
+
+      // Tie-break: standard competition ranking + special "tied at top → both juara 2"
+      // Group by totalFinal
+      const groups = [];
+      results.forEach((r, idx) => {
+        let g = groups.find((gg) => gg.score === r.totalFinal);
+        if (!g) { g = { score: r.totalFinal, indices: [] }; groups.push(g); }
+        g.indices.push(idx);
+      });
+
+      const POINTS = { 1: 50, 2: 25, 3: 15 };
+      let rank = 1;
+      groups.forEach((g) => {
+        // Tied at rank 1 → semua dapat 25 (juara 2 pattern, sesuai PDF)
+        const pts =
+          (rank === 1 && g.indices.length > 1) ? 25 : (POINTS[rank] || 0);
+        g.indices.forEach((i) => {
+          results[i].rank   = rank;
+          results[i].points = pts;
+        });
+        rank += g.indices.length; // standard competition ranking (skip after tie)
+      });
+
+      gameState.settlement.results    = results;
+      gameState.settlement.isExecuted = true;
+      gameState.currentPhase          = 'ended';
+      gameState.isGameEnded           = true;
+
+      clearAutoSave();
+      disableBankForm();
+      showSettlementScreen();
+    }
+
+    // ============================================================
+    // SETTLEMENT SCREEN — 3 phase
+    //   Phase 1: spinner "Calculating…" (5s)
+    //   Phase 2: breakdown per tim + tombol "Show Final Ranking"
+    //   Phase 3: ranking reveal beruntun (rank 3 → 2 → 1) + confetti
+    // ============================================================
+    // Step 8: Auto-sell settlement flow.
+    // Phase 1: spinner + "Auto-selling holdings…" + log scroll (3 detik)
+    // Phase 2: SKIP "Show Final Ranking" → langsung Final Ranking dengan reveal
+    function showSettlementScreen() {
+      const overlay = document.getElementById('settlementOverlay');
+      const card    = document.getElementById('settlementCard');
+
+      // PHASE 1 — auto-sell animation
+      card.innerHTML = `
+        <div class="settlement-phase-autosell">
+          <div class="autosell-spinner">⏳</div>
+          <div class="autosell-title">AUTO-SELLING HOLDINGS</div>
+          <div class="autosell-subtitle">Menjual semua holdings di harga rata-rata 3 sesi…</div>
+          <div class="autosell-progress"><div class="autosell-progress-bar"></div></div>
+          <div id="autosellLog" class="autosell-log"></div>
+        </div>
+      `;
+      overlay.classList.remove('hidden');
+      void overlay.offsetWidth;
+      overlay.classList.add('show');
+
+      animateAutoSellLog();
+
+      // PHASE 2 — langsung Final Ranking (skip breakdown)
+      setTimeout(() => showFinalRankingDirect(), 3500);
+    }
+
+    function animateAutoSellLog() {
+      const logEl = document.getElementById('autosellLog');
+      if (!logEl) return;
+
+      const allSells = [];
+      gameState.settlement.results.forEach((r) => {
+        r.holdings.forEach((h) => {
+          allSells.push('Tim ' + r.team + ': ' + h.quantity + ' ' + h.asset +
+                        ' × ' + h.avgPrice + 'k = ' + h.value + 'k');
+        });
+      });
+
+      if (allSells.length === 0) {
+        const line = document.createElement('div');
+        line.className = 'autosell-log-entry';
+        line.textContent = '(Tidak ada holdings — semua tim full cash)';
+        logEl.appendChild(line);
+        return;
+      }
+
+      allSells.forEach((entry, i) => {
+        setTimeout(() => {
+          const line = document.createElement('div');
+          line.className = 'autosell-log-entry';
+          line.textContent = '✓ ' + entry;
+          logEl.appendChild(line);
+          // Auto-scroll to bottom
+          logEl.scrollTop = logEl.scrollHeight;
+        }, Math.min(i * 250, 2800));
+      });
+    }
+
+    function showFinalRankingDirect() {
+      // Skip breakdown screen — langsung render Final Ranking dengan reveal animation
+      renderFinalRanking();
+    }
+
+    function hideSettlementScreen() {
+      const overlay = document.getElementById('settlementOverlay');
+      overlay.classList.remove('show');
+      setTimeout(() => overlay.classList.add('hidden'), 500);
+    }
+
+    function renderSettlementBreakdown() {
+      const card = document.getElementById('settlementCard');
+      const results = gameState.settlement.results;
+
+      // Tampilkan dalam urutan asli (Alpha, Beta, Gamma) untuk breakdown,
+      // bukan sort by rank — biar audit-friendly.
+      const teamOrder = ['Alpha', 'Beta', 'Gamma'];
+      const byTeam = {};
+      results.forEach((r) => { byTeam[r.team] = r; });
+
+      let breakdownHtml = '';
+      teamOrder.forEach((name) => {
+        const r = byTeam[name];
+        if (!r) return;
+
+        let holdingsHtml = '';
+        if (r.holdings.length === 0) {
+          holdingsHtml = `<div class="breakdown-row holding"><span>(no holdings)</span><span>0 koin</span></div>`;
+        } else {
+          r.holdings.forEach((h) => {
+            holdingsHtml += `
+              <div class="breakdown-row holding">
+                <span>• ${h.quantity} ${h.asset} (avg ${h.avgPrice})</span>
+                <span>+${h.value} koin</span>
+              </div>`;
+          });
+        }
+
+        breakdownHtml += `
+          <div class="team-breakdown">
+            <div class="team-breakdown-name">TIM ${r.team.toUpperCase()}</div>
+            <div class="breakdown-row">
+              <span>Cash on hand</span><span>${r.cash} koin</span>
+            </div>
+            <div class="breakdown-row"><span>Holdings:</span><span></span></div>
+            ${holdingsHtml}
+            <div class="breakdown-row total">
+              <span>TOTAL FINAL</span><span>${r.totalFinal} koin</span>
+            </div>
+            <div class="breakdown-row tokens-wasted">
+              <span>Hop Tokens wasted: ${r.hopTokensWasted}</span><span></span>
+            </div>
+          </div>`;
+      });
+
+      card.innerHTML = `
+        <div class="settlement-title">🏆 FINAL SETTLEMENT 🏆</div>
+        <div class="settlement-subtitle">Calculated at end of 15:00 game</div>
+        ${breakdownHtml}
+        <div class="flex justify-center mt-6">
+          <button id="showRankingBtn" type="button" class="btn-gold" style="padding: 12px 28px;">
+            Show Final Ranking →
+          </button>
+        </div>
+      `;
+
+      document.getElementById('showRankingBtn').addEventListener('click', renderFinalRanking);
+    }
+
+    function renderFinalRanking() {
+      const card = document.getElementById('settlementCard');
+      const results = gameState.settlement.results;
+
+      // Sort by rank ASC (rank 1 di atas), tapi reveal-nya dari bawah
+      const sorted = [...results].sort((a, b) => a.rank - b.rank);
+
+      const medalFor = (rank) => rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
+      const labelFor = (rank) => rank === 1 ? 'JUARA 1' : rank === 2 ? 'JUARA 2' : 'JUARA 3';
+
+      let rankHtml = '';
+      sorted.forEach((r, i) => {
+        rankHtml += `
+          <div class="rank-card rank-${r.rank}" data-reveal-idx="${i}">
+            <div class="rank-medal">${medalFor(r.rank)}</div>
+            <div class="rank-info">
+              <span class="rank-label">${labelFor(r.rank)}</span>
+              <span class="rank-team-name">TIM ${r.team.toUpperCase()}</span>
+            </div>
+            <div class="rank-stats">
+              <div class="total-coins">${r.totalFinal} koin</div>
+              <div class="points">${r.points} poin</div>
+            </div>
+          </div>`;
+      });
+
+      card.innerHTML = `
+        <div class="settlement-title">🏆 FINAL RANKING 🏆</div>
+        <div class="settlement-subtitle">Hop &amp; Swap — The Wonderland Time-Market</div>
+        <div class="ranking-list">${rankHtml}</div>
+        <div class="flex justify-center gap-3 mt-8 flex-wrap">
+          <button id="copyResultsBtn" type="button" class="btn-gold" style="padding: 10px 20px;">
+            📋 Copy ke Clipboard
+          </button>
+          <button id="downloadResultsBtn" type="button" class="btn-gold" style="padding: 10px 20px;">
+            📥 Download Hasil (.txt)
+          </button>
+          <button id="newSessionBtn"  type="button" class="btn-danger" style="padding: 10px 20px;">
+            🔄 Mulai Sesi Baru
+          </button>
+        </div>
+      `;
+
+      // Reveal cards beruntun: yang pangkat paling rendah (juara 3) muncul dulu,
+      // lalu naik ke juara 1 dengan jeda 1.5s
+      const cards = card.querySelectorAll('.rank-card');
+      const revealOrder = [...cards].reverse(); // dari paling bawah (juara 3) ke atas
+      revealOrder.forEach((el, i) => {
+        setTimeout(() => {
+          el.classList.add('reveal');
+          // Confetti + fanfare saat juara 1 muncul
+          if (el.classList.contains('rank-1')) {
+            launchConfetti(card);
+            soundFanfare();
+          }
+        }, i * 1500);
+      });
+
+      document.getElementById('copyResultsBtn').addEventListener('click', copyResultsToClipboard);
+      document.getElementById('downloadResultsBtn').addEventListener('click', downloadResultsAsTxt);
+      document.getElementById('newSessionBtn').addEventListener('click', startNewSession);
+    }
+
+    function launchConfetti(container) {
+      const symbols = ['✨', '🎉', '⭐', '🏆', '💫'];
+      // pastikan container relative agar absolute child positioning bekerja
+      const cs = window.getComputedStyle(container);
+      if (cs.position === 'static') container.style.position = 'relative';
+
+      for (let i = 0; i < 28; i++) {
+        const piece = document.createElement('span');
+        piece.className = 'confetti-piece';
+        piece.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        piece.style.left = (Math.random() * 100) + '%';
+        piece.style.animationDelay = (Math.random() * 0.6) + 's';
+        piece.style.animationDuration = (2.5 + Math.random() * 1.5) + 's';
+        container.appendChild(piece);
+        setTimeout(() => piece.remove(), 4500);
+      }
+    }
+
+    // ============================================================
+    // COPY RESULTS / NEW SESSION
+    // ============================================================
+    function copyResultsToClipboard() {
+      const results = [...gameState.settlement.results].sort((a, b) => a.rank - b.rank);
+      const medalFor = (rank) => rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
+      const now = new Date();
+      const stamp = now.toLocaleString();
+
+      let text = `SSEG 2026 - HOP & SWAP FINAL RANKING\nSesi: ${stamp}\n\n`;
+      results.forEach((r) => {
+        text += `${medalFor(r.rank)} Tim ${r.team} - ${r.totalFinal} koin (${r.points} poin)\n`;
+      });
+
+      const fallback = () => {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          ta.remove();
+          showToast('✓ Copied to clipboard', 'success');
+        } catch (e) {
+          showToast('⚠ Gagal copy', 'error');
+        }
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+          .then(() => showToast('✓ Copied to clipboard', 'success'))
+          .catch(fallback);
+      } else {
+        fallback();
+      }
+    }
+
+    function startNewSession() {
+      if (!confirm('Yakin mulai sesi baru? Semua data akan di-reset.')) return;
+      hideSettlementScreen();
+      // Skip confirm di resetGame karena sudah confirm di sini
+      resetGame(true);
+    }
+
+    // ============================================================
+    // TOAST — stack-based, multiple simultaneous (Step 5 upgrade)
+    // ============================================================
+    function getToastIcon(type) {
+      return ({ success: '✓', error: '⚠', info: 'ℹ', warning: '⚡' })[type] || '•';
+    }
+
+    function showToast(message, type, duration) {
+      const cls = ['success', 'error', 'info', 'warning'].includes(type) ? type : 'info';
+      const ms  = (typeof duration === 'number') ? duration : 3000;
+
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = 'toast toast-' + cls;
+      toast.innerHTML =
+        '<span class="toast-icon">' + getToastIcon(cls) + '</span>' +
+        '<span class="toast-message"></span>';
+      // Pakai textContent supaya aman dari injection
+      toast.querySelector('.toast-message').textContent = message;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('toast-fadeout');
+        setTimeout(() => toast.remove(), 320);
+      }, ms);
+    }
+
+    // ============================================================
+    // SOUND (Web Audio API, no external files)
+    // ============================================================
+    let _audioCtx = null;
+    function getAudioCtx() {
+      if (!_audioCtx) {
+        try {
+          _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+          console.warn('AudioContext unavailable', e);
+        }
+      }
+      // Resume context kalau di-suspend (browser autoplay policy)
+      if (_audioCtx && _audioCtx.state === 'suspended') {
+        _audioCtx.resume().catch(() => {});
+      }
+      return _audioCtx;
+    }
+
+    function playBeep(frequency, duration, volume, type) {
+      if (!gameState.config.soundEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+
+      try {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.type = type || 'sine';
+        osc.frequency.value = frequency || 800;
+
+        const dur = duration || 0.1;
+        const vol = (typeof volume === 'number') ? volume : 0.3;
+
+        gain.gain.setValueAtTime(vol, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + dur);
+
+        osc.start();
+        osc.stop(ctx.currentTime + dur);
+      } catch (e) {
+        console.warn('playBeep failed', e);
+      }
+    }
+
+    function soundConfirm()      { playBeep(800, 0.1,  0.25, 'sine'); }
+    function soundError()        {
+      playBeep(300, 0.15, 0.25, 'sawtooth');
+      setTimeout(() => playBeep(200, 0.15, 0.25, 'sawtooth'), 100);
+    }
+    function soundCue()          {
+      playBeep(660, 0.15, 0.32, 'sine');
+      setTimeout(() => playBeep(880, 0.2, 0.32, 'sine'), 150);
+    }
+    function soundEventTrigger() {
+      playBeep(440, 0.1, 0.25, 'triangle');
+      setTimeout(() => playBeep(550, 0.1, 0.25, 'triangle'), 100);
+      setTimeout(() => playBeep(660, 0.2, 0.25, 'triangle'), 200);
+    }
+    function soundFanfare() {
+      playBeep(523, 0.2, 0.35, 'sine');           // C5
+      setTimeout(() => playBeep(659, 0.2, 0.35, 'sine'), 200); // E5
+      setTimeout(() => playBeep(784, 0.4, 0.4,  'sine'), 400); // G5
+    }
+    function soundTimerTick()    { playBeep(1000, 0.05, 0.12, 'square'); }
+
+    function toggleSound() {
+      gameState.config.soundEnabled = !gameState.config.soundEnabled;
+      const btn = document.getElementById('soundToggle');
+      btn.textContent = gameState.config.soundEnabled ? '🔊' : '🔇';
+      btn.classList.toggle('muted', !gameState.config.soundEnabled);
+      // Beep singkat sebagai konfirmasi (cuma kalau baru di-enable)
+      if (gameState.config.soundEnabled) soundConfirm();
+      showToast(
+        gameState.config.soundEnabled ? 'Sound ON' : 'Sound OFF',
+        'info', 1500
+      );
+    }
+
+    // ============================================================
+    // UNDO — snapshot tim sebelum tiap transaksi (max 5)
+    // ============================================================
+    function pushUndoSnapshot(transactionType, teamName, details) {
+      const snapshot = {
+        transactionType,
+        teamName,
+        teamSnapshot: JSON.parse(JSON.stringify(gameState.teams[teamName])),
+        details:      details || null,
+        timestamp:    new Date().toISOString()
+      };
+      gameState.undoStack.push(snapshot);
+      while (gameState.undoStack.length > gameState.maxUndoStack) {
+        gameState.undoStack.shift();
+      }
+    }
+
+    function undoLastTransaction() {
+      if (gameState.settlement.isExecuted) {
+        showToast('Tidak bisa undo setelah settlement', 'error');
+        soundError();
+        return;
+      }
+      if (gameState.undoStack.length === 0) {
+        showToast('Tidak ada transaksi untuk di-undo', 'error');
+        soundError();
+        return;
+      }
+
+      const last = gameState.undoStack.pop();
+      // Restore state tim sebelum transaksi
+      gameState.teams[last.teamName] = last.teamSnapshot;
+
+      showToast('↶ Undid: ' + last.teamName + ' ' + last.transactionType, 'success');
+      soundConfirm();
+      render();
+      updatePreview();
+    }
+
+    function renderUndoButton() {
+      const btn   = document.getElementById('undoBtn');
+      const count = document.getElementById('undoCount');
+      if (!btn) return;
+      const n = gameState.undoStack.length;
+      count.textContent = '(' + n + ')';
+      btn.disabled = (n === 0) || gameState.settlement.isExecuted;
+    }
+
+    // ============================================================
+    // NUMBER-CHANGE ANIMATION (leaderboard)
+    // ============================================================
+    function animateNumberChange(element) {
+      if (!element) return;
+      element.classList.remove('number-changed');
+      void element.offsetWidth;
+      element.classList.add('number-changed');
+    }
+
+    const _prevTeamStats = {
+      Alpha: { coins: 100, tokens: 3 },
+      Beta:  { coins: 100, tokens: 3 },
+      Gamma: { coins: 100, tokens: 3 }
+    };
+
+    function flashLeaderboardChanges() {
+      const root = document.getElementById('leaderboard');
+      if (!root) return;
+      Object.keys(gameState.teams).forEach((name) => {
+        const team = gameState.teams[name];
+        const prev = _prevTeamStats[name] || { coins: team.coins, tokens: team.hopTokens };
+        if (team.coins !== prev.coins) {
+          animateNumberChange(root.querySelector('[data-coin-team="' + name + '"]'));
+        }
+        if (team.hopTokens !== prev.tokens) {
+          animateNumberChange(root.querySelector('[data-token-team="' + name + '"]'));
+        }
+        _prevTeamStats[name] = { coins: team.coins, tokens: team.hopTokens };
+      });
+    }
+
+    // ============================================================
+    // VALIDATE — sanity check state
+    // ============================================================
+    function validateGameState() {
+      let ok = true;
+      Object.keys(gameState.teams).forEach((name) => {
+        const team = gameState.teams[name];
+        if (team.coins < 0) {
+          console.error(name + ' has negative coins: ' + team.coins);
+          showToast('⚠ Data error: ' + name + ' koin negatif', 'error');
+          ok = false;
+        }
+        if (team.hopTokens < 0) {
+          console.error(name + ' has negative tokens: ' + team.hopTokens);
+          showToast('⚠ Data error: ' + name + ' token negatif', 'error');
+          ok = false;
+        }
+      });
+      return ok;
+    }
+
+    // ============================================================
+    // AUTO-SAVE & RECOVERY (localStorage)
+    // ============================================================
+    const SAVE_KEY = 'hopSwapAutoSave';
+
+    function autoSaveState() {
+      // Jangan save kalau game belum mulai atau sudah ended (settlement)
+      if (gameState.currentPhase === 'preparation') return;
+      if (gameState.isGameEnded) return;
+
+      try {
+        const payload = {
+          teams:            gameState.teams,
+          market:           gameState.market,
+          eventsTriggered:  gameState.eventsTriggered,
+          priceHistory:     gameState.priceHistory,
+          remainingSeconds: gameState.timer.remainingSeconds,
+          cueTriggered:     gameState.timer.cueTriggered,
+          currentPhase:     gameState.currentPhase,
+          timestamp:        Date.now()
+        };
+        localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+      } catch (e) {
+        // Quota exceeded atau localStorage di-disable — abaikan diam-diam
+        console.warn('Auto-save failed:', e.message);
+      }
+    }
+
+    function clearAutoSave() {
+      try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+    }
+
+    function checkRecovery() {
+      let saved;
+      try { saved = localStorage.getItem(SAVE_KEY); } catch (e) { return; }
+      if (!saved) return;
+
+      let parsed;
+      try { parsed = JSON.parse(saved); } catch (e) { clearAutoSave(); return; }
+
+      const elapsed = Date.now() - (parsed.timestamp || 0);
+      if (elapsed > 30 * 60 * 1000) { // 30 menit
+        clearAutoSave();
+        return;
+      }
+
+      const minutesAgo = Math.floor(elapsed / 60000);
+      const ok = confirm(
+        'Ditemukan game tersimpan dari ' + minutesAgo + ' menit lalu. Lanjutkan?'
+      );
+      if (!ok) {
+        clearAutoSave();
+        return;
+      }
+
+      // Restore — assign per field supaya struktur gameState tetap utuh
+      try {
+        Object.assign(gameState.teams, parsed.teams);
+        Object.assign(gameState.market, parsed.market);
+        gameState.eventsTriggered          = parsed.eventsTriggered || 0;
+        gameState.priceHistory             = parsed.priceHistory || [];
+        gameState.timer.remainingSeconds   = parsed.remainingSeconds || 900;
+        gameState.timer.cueTriggered       = parsed.cueTriggered ||
+          { event1: false, event2: false, event3: false, event4: false };
+        gameState.currentPhase             = parsed.currentPhase || 'trading';
+        // Restore ke pause supaya user bisa decide untuk resume
+        gameState.timer.isRunning          = false;
+        gameState.timer.isPaused           = true;
+        showPauseOverlay();
+        showToast('✓ Game restored from auto-save (paused)', 'success', 4000);
+      } catch (e) {
+        showToast('⚠ Recovery gagal — start fresh', 'error');
+        clearAutoSave();
+      }
+    }
+
+    // ============================================================
+    // FORCE-CLOSE SAFETY NET — popup event yang stuck >15s
+    // ============================================================
+    function startSafetyNet() {
+      setInterval(() => {
+        if (!gameState.isEventLocked) return;
+        const last = gameState.priceHistory[gameState.priceHistory.length - 1];
+        if (!last) return;
+        const elapsed = Date.now() - new Date(last.timestamp).getTime();
+        if (elapsed > 15000) {
+          console.warn('Popup stuck >15s, force closing');
+          hideEventPopup();
+          gameState.isEventLocked = false;
+          render();
+        }
+      }, 1000);
+    }
+
+    // ============================================================
+    // DOWNLOAD HASIL — .txt
+    // ============================================================
+    function downloadResultsAsTxt() {
+      const now = new Date();
+      const human = now.toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+      const medals = ['🥇', '🥈', '🥉'];
+
+      let c = 'SSEG 2026 - HOP & SWAP\n';
+      c += 'Sesi: ' + human + '\n';
+      c += '='.repeat(50) + '\n\n';
+
+      // Final ranking — sort by rank
+      c += 'FINAL RANKING:\n';
+      const ranked = [...gameState.settlement.results].sort((a, b) => a.rank - b.rank);
+      ranked.forEach((r, i) => {
+        const medal = medals[r.rank - 1] || '  ';
+        c += medal + ' Tim ' + r.team + ': ' + r.totalFinal + ' koin (' + r.points + ' poin)\n';
+      });
+      c += '\n';
+
+      // Detail settlement per tim (urutan asli)
+      c += 'DETAIL SETTLEMENT:\n';
+      ['Alpha', 'Beta', 'Gamma'].forEach((name) => {
+        const r = gameState.settlement.results.find((x) => x.team === name);
+        if (!r) return;
+        c += '\nTim ' + r.team + ':\n';
+        c += '  Cash: ' + r.cash + ' koin\n';
+        if (r.holdings.length > 0) {
+          c += '  Holdings:\n';
+          r.holdings.forEach((h) => {
+            c += '    - ' + h.quantity + ' ' + h.asset +
+                 ' (avg ' + h.avgPrice + ') = ' + h.value + ' koin\n';
+          });
+        } else {
+          c += '  Holdings: (kosong)\n';
+        }
+        c += '  Settlement Value: ' + r.settlementValue + ' koin\n';
+        c += '  TOTAL: ' + r.totalFinal + ' koin\n';
+        c += '  Hop Tokens wasted: ' + r.hopTokensWasted + '\n';
+      });
+      c += '\n';
+
+      // Event timeline
+      c += 'EVENT TIMELINE:\n';
+      if (gameState.priceHistory.length > 0) {
+        gameState.priceHistory.forEach((p) => {
+          const ev = EVENT_LIBRARY[p.eventId];
+          c += 'Event ' + p.eventNumber + ': ' + (ev ? ev.title : p.eventId) + '\n';
+        });
+      } else {
+        c += '(no events triggered)\n';
+      }
+      c += '\n';
+
+      // Final market prices
+      c += 'FINAL MARKET PRICES:\n';
+      gameState.config.assets.forEach((asset) => {
+        const m = gameState.market[asset];
+        c += '  ' + asset + ': Dawn ' + m.Dawn + ' | Noon ' + m.Noon + ' | Dusk ' + m.Dusk + '\n';
+      });
+      c += '\n';
+
+      // Portfolio history (final position per tim, per asset+session)
+      c += 'PORTFOLIO HISTORY (Final Position):\n';
+      ['Alpha', 'Beta', 'Gamma'].forEach((name) => {
+        const team = gameState.teams[name];
+        c += '\nTim ' + name + ':\n';
+        c += '  Cash: ' + team.coins + 'k\n';
+        c += '  Hop Tokens: ' + team.hopTokens + '/' + gameState.config.initialHopTokens + '\n';
+        let hasHoldings = false;
+        gameState.config.assets.forEach((asset) => {
+          gameState.config.sessions.forEach((session) => {
+            const qty = team.holdings[asset][session];
+            if (qty > 0) {
+              hasHoldings = true;
+              const cost = team.holdingsCost[asset][session];
+              const avgBuy = (cost / qty).toFixed(2);
+              const currentPrice = gameState.market[asset][session];
+              const pnl = ((currentPrice - cost / qty) * qty).toFixed(1);
+              c += '  - ' + qty + ' ' + asset + ' @ ' + session +
+                   ': avg buy ' + avgBuy + 'k, now ' + currentPrice + 'k, PNL ' + pnl + 'k\n';
+            }
+          });
+        });
+        if (!hasHoldings) c += '  (no holdings)\n';
+      });
+      c += '\n';
+
+      // Transaction log per tim
+      c += 'TRANSACTION LOG:\n';
+      ['Alpha', 'Beta', 'Gamma'].forEach((name) => {
+        const team = gameState.teams[name];
+        c += '\nTim ' + name + ' (' + team.transactions.length + ' transaksi):\n';
+        team.transactions.forEach((t, i) => {
+          if (t.type === 'HOP') {
+            c += '  ' + (i + 1) + '. HOP ' + t.quantity + ' ' + t.asset +
+                 ': ' + t.fromSession + ' → ' + t.toSession + '\n';
+          } else {
+            c += '  ' + (i + 1) + '. ' + t.type + ' ' + t.quantity + ' ' + t.asset +
+                 ' @ ' + t.session + '\n';
+          }
+        });
+      });
+
+      try {
+        const blob = new Blob([c], { type: 'text/plain;charset=utf-8' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url;
+        const safe = human.replace(/[^a-zA-Z0-9]/g, '-');
+        a.download = 'hop-swap-results-' + safe + '.txt';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        showToast('✓ File hasil ter-download', 'success');
+        soundConfirm();
+      } catch (e) {
+        showToast('⚠ Download gagal: ' + e.message, 'error');
+        soundError();
+      }
+    }
+
+    // ============================================================
+    // KEYBOARD SHORTCUTS
+    // ============================================================
+    // Step 8: setTeam pakai pattern button click — tetap kompatibel keyboard 1/2/3
+    function setTeam(name) {
+      if (gameState.isGameEnded) return;
+      selectTeam(name);
+    }
+    // Step 6: aksi pakai segmented buttons. Helper ini update hidden input
+    // + class .selected pada tombol terkait + trigger preview update.
+    function selectAction(action) {
+      const hidden = document.getElementById('inputAction');
+      if (!hidden || hidden.disabled) return;
+      hidden.value = action;
+
+      const buttons = document.querySelectorAll('.action-btn');
+      buttons.forEach((b) => {
+        b.classList.toggle('selected', b.dataset.action === action);
+      });
+      // Step 8: reset HOP selection saat ganti aksi (cleanup state)
+      resetHopSelection();
+      // Step 9: recalc slider max berdasarkan aksi baru
+      updateQuantityToMax();
+    }
+    // Backwards-compat alias (kalau ada caller lama)
+    function setAction(action) { selectAction(action); }
+
+    function setupActionButtons() {
+      const buttons = document.querySelectorAll('.action-btn');
+      buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (gameState.isGameEnded) return;
+          selectAction(btn.dataset.action);
+        });
+      });
+    }
+
+    // ============================================================
+    // STEP 8: SETUP TEAM / ASSET / SESSION BUTTON SELECTORS
+    // ============================================================
+    function selectTeam(name) {
+      const hidden = document.getElementById('inputTeam');
+      if (!hidden || hidden.disabled) return;
+      hidden.value = name;
+      document.querySelectorAll('.team-btn').forEach((b) => {
+        b.classList.toggle('selected', b.dataset.team === name);
+      });
+      resetHopSelection();
+      updateQuantityToMax(); // Step 9: koin tim beda → slider max beda
+    }
+
+    function selectAsset(asset) {
+      const hidden = document.getElementById('inputAsset');
+      if (!hidden || hidden.disabled) return;
+      hidden.value = asset;
+      document.querySelectorAll('.asset-btn').forEach((b) => {
+        b.classList.toggle('selected', b.dataset.asset === asset);
+      });
+      resetHopSelection();
+      updateQuantityToMax(); // Step 9: harga aset beda → slider max beda
+    }
+
+    function selectSession(session) {
+      const hidden = document.getElementById('inputSession');
+      if (!hidden || hidden.disabled) return;
+      hidden.value = session;
+      document.querySelectorAll('.session-btn').forEach((b) => {
+        b.classList.toggle('selected', b.dataset.session === session);
+      });
+      updateQuantityToMax(); // Step 9: harga sesi beda / holdings sesi beda
+    }
+
+    function setupTeamButtons() {
+      document.querySelectorAll('.team-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (gameState.isGameEnded) return;
+          selectTeam(btn.dataset.team);
+        });
+      });
+    }
+    function setupAssetButtons() {
+      document.querySelectorAll('.asset-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (gameState.isGameEnded) return;
+          selectAsset(btn.dataset.asset);
+        });
+      });
+    }
+    function setupSessionButtons() {
+      document.querySelectorAll('.session-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (gameState.isGameEnded) return;
+          selectSession(btn.dataset.session);
+        });
+      });
+    }
+
+    // ============================================================
+    // STEP 8: HOP SEQUENTIAL FROM → TO PICKER
+    // ============================================================
+    let hopSelection = { from: null, to: null, currentStep: 'from' };
+
+    function resetHopSelection() {
+      hopSelection = { from: null, to: null, currentStep: 'from' };
+      const fromInput = document.getElementById('inputFromSession');
+      const toInput   = document.getElementById('inputToSession');
+      if (fromInput) fromInput.value = '';
+      if (toInput)   toInput.value   = '';
+
+      const stepLabel = document.getElementById('hopStepLabel');
+      if (stepLabel) stepLabel.textContent = 'Klik FROM dulu';
+
+      document.querySelectorAll('.hop-session-btn').forEach((b) => {
+        b.classList.remove('is-from', 'is-to');
+        const tagEl = b.querySelector('.hop-session-tag');
+        if (tagEl) tagEl.textContent = '';
+      });
+    }
+
+    function setupHopSessionButtons() {
+      const buttons = document.querySelectorAll('.hop-session-btn');
+      buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (gameState.isGameEnded) return;
+          const session = btn.dataset.hopSession;
+
+          if (hopSelection.currentStep === 'from') {
+            hopSelection.from        = session;
+            hopSelection.currentStep = 'to';
+            document.getElementById('inputFromSession').value = session;
+            document.getElementById('hopStepLabel').textContent = 'Klik TO sekarang';
+
+            buttons.forEach((b) => {
+              b.classList.remove('is-from', 'is-to');
+              const tag = b.querySelector('.hop-session-tag');
+              if (tag) tag.textContent = '';
+            });
+            btn.classList.add('is-from');
+            btn.querySelector('.hop-session-tag').textContent = 'FROM';
+
+            // Step 9: setelah FROM dipilih → recalculate slider max berdasarkan holdings@from
+            updateQuantityToMax();
+
+          } else if (hopSelection.currentStep === 'to') {
+            if (session === hopSelection.from) {
+              showToast('⚠ TO tidak boleh sama dengan FROM', 'warning');
+              return;
+            }
+            hopSelection.to          = session;
+            hopSelection.currentStep = 'done';
+            document.getElementById('inputToSession').value = session;
+            document.getElementById('hopStepLabel').textContent = '✓ Siap konfirmasi';
+
+            buttons.forEach((b) => {
+              const s = b.dataset.hopSession;
+              b.classList.remove('is-from', 'is-to');
+              const tag = b.querySelector('.hop-session-tag');
+              if (s === hopSelection.from) {
+                b.classList.add('is-from');
+                tag.textContent = 'FROM';
+              } else if (s === hopSelection.to) {
+                b.classList.add('is-to');
+                tag.textContent = 'TO';
+              } else if (tag) {
+                tag.textContent = '';
+              }
+            });
+          }
+          // Step 'done' → klik di-ignore, user pakai Reset
+
+          updatePreview();
+        });
+      });
+
+      const resetBtn = document.getElementById('hopResetBtn');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          resetHopSelection();
+          updatePreview();
+        });
+      }
+    }
+
+    // ============================================================
+    // STEP 9: QUANTITY SLIDER + NUMBER INPUT (auto-cap)
+    // ============================================================
+    function _qtyUpdateFill() {
+      const slider = document.getElementById('qtySlider');
+      const fill   = document.getElementById('qtySliderFill');
+      if (!slider || !fill) return;
+      const min = parseInt(slider.min, 10) || 1;
+      const max = parseInt(slider.max, 10) || 1;
+      const val = parseInt(slider.value, 10) || 1;
+      const pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
+      fill.style.width = pct + '%';
+    }
+
+    function setupQuantityControls() {
+      const input  = document.getElementById('inputQty');
+      const slider = document.getElementById('qtySlider');
+      if (!input || !slider) return;
+
+      // Slider drag/click → number input
+      slider.addEventListener('input', () => {
+        input.value = slider.value;
+        _qtyUpdateFill();
+        updatePreview();
+      });
+
+      // Number input → slider, auto-cap di max
+      const syncInputToSlider = () => {
+        let val = parseInt(input.value, 10);
+        const min = parseInt(slider.min, 10) || 1;
+        const max = parseInt(slider.max, 10) || 1;
+        if (isNaN(val) || val < min) val = min;
+        if (val > max) val = max;
+        input.value  = val;
+        slider.value = val;
+        _qtyUpdateFill();
+        updatePreview();
+      };
+      input.addEventListener('input', syncInputToSlider);
+      input.addEventListener('blur',  syncInputToSlider);
+
+      // -/+ buttons
+      document.getElementById('qtyMinusBtn').addEventListener('click', () => {
+        const v = parseInt(input.value, 10) || 1;
+        if (v > 1) {
+          input.value = v - 1;
+          slider.value = v - 1;
+          _qtyUpdateFill();
+          updatePreview();
+        }
+      });
+      document.getElementById('qtyPlusBtn').addEventListener('click', () => {
+        const v   = parseInt(input.value, 10) || 0;
+        const max = parseInt(slider.max, 10) || 1;
+        if (v < max) {
+          input.value  = v + 1;
+          slider.value = v + 1;
+          _qtyUpdateFill();
+          updatePreview();
+        } else {
+          showToast('⚠ Sudah max (' + max + ')', 'warning');
+        }
+      });
+
+      // MAX button
+      document.getElementById('qtyMaxBtn').addEventListener('click', () => {
+        const max = parseInt(slider.max, 10) || 1;
+        input.value  = max;
+        slider.value = max;
+        _qtyUpdateFill();
+        updatePreview();
+      });
+
+      _qtyUpdateFill();
+    }
+
+    // Step 9: hitung max + set slider range, default value = max (slider mentok)
+    function updateQuantityToMax() {
+      const f    = readForm();
+      const team = gameState.teams[f.teamName];
+      if (!team) return;
+
+      let maxQty = 0;
+      if (f.action === 'BUY') {
+        const price = gameState.market[f.asset] && gameState.market[f.asset][f.session];
+        if (price) {
+          maxQty = Math.max(0, Math.floor((team.coins - gameState.config.feeBuy) / price));
+        }
+      } else if (f.action === 'SELL') {
+        maxQty = (team.holdings[f.asset] && team.holdings[f.asset][f.session]) || 0;
+      } else if (f.action === 'HOP') {
+        if (hopSelection.from) {
+          maxQty = (team.holdings[f.asset] && team.holdings[f.asset][hopSelection.from]) || 0;
+        }
+      }
+
+      const slider     = document.getElementById('qtySlider');
+      const input      = document.getElementById('inputQty');
+      const maxValueEl = document.getElementById('qtyMaxValue');
+
+      if (!slider || !input) return;
+
+      if (maxQty < 1) {
+        // Tidak bisa transaksi (no holdings / no koin)
+        slider.min   = 1;
+        slider.max   = 1;
+        slider.value = 1;
+        slider.disabled = true;
+        input.value     = 0;
+        input.disabled  = true;
+        if (maxValueEl) maxValueEl.textContent = '0';
+      } else {
+        slider.min      = 1;
+        slider.max      = maxQty;
+        slider.value    = maxQty;  // default ke max (slider mentok kanan)
+        slider.disabled = false;
+        input.value     = maxQty;
+        input.disabled  = false;
+        if (maxValueEl) maxValueEl.textContent = maxQty;
+      }
+
+      _qtyUpdateFill();
+      updatePreview();
+    }
+
+    // ============================================================
+    // STEP 8: REFRESH TEAM BUTTON META (saldo + token saat berubah)
+    // ============================================================
+    function refreshTeamButtonMeta() {
+      ['Alpha', 'Beta', 'Gamma'].forEach((name) => {
+        const team = gameState.teams[name];
+        const el = document.querySelector('[data-team-meta="' + name + '"]');
+        if (el) el.textContent = team.coins + 'k · ' + team.hopTokens + '🎟';
+      });
+    }
+
+    // ============================================================
+    // STEP 8: CLICK-TO-FILL DARI PORTFOLIO HOLDING ROW
+    // ============================================================
+    function attachPortfolioClickHandlers() {
+      document.querySelectorAll('.holding-row[data-team]').forEach((row) => {
+        row.addEventListener('click', (e) => {
+          if (e.target.closest('.quick-sell-btn') || e.target.closest('.quick-hop-btn')) return;
+          fillFormFromHolding(row.dataset.team, row.dataset.asset, row.dataset.session,
+                              parseInt(row.dataset.qty, 10), 'SELL');
+        });
+        const sellBtn = row.querySelector('.quick-sell-btn');
+        if (sellBtn) sellBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          fillFormFromHolding(row.dataset.team, row.dataset.asset, row.dataset.session,
+                              parseInt(row.dataset.qty, 10), 'SELL');
+        });
+        const hopBtn = row.querySelector('.quick-hop-btn');
+        if (hopBtn) hopBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          fillFormFromHolding(row.dataset.team, row.dataset.asset, row.dataset.session,
+                              parseInt(row.dataset.qty, 10), 'HOP');
+        });
+      });
+    }
+
+    function fillFormFromHolding(teamName, asset, session, qty, action) {
+      if (gameState.isGameEnded) return;
+
+      // 1. Set Team (visual + hidden)
+      document.getElementById('inputTeam').value = teamName;
+      document.querySelectorAll('.team-btn').forEach((b) => {
+        b.classList.toggle('selected', b.dataset.team === teamName);
+      });
+
+      // 2. Set Action (visual + hidden) — bypass selectAction supaya tidak reset HOP dulu
+      document.getElementById('inputAction').value = action;
+      document.querySelectorAll('.action-btn').forEach((b) => {
+        b.classList.toggle('selected', b.dataset.action === action);
+      });
+
+      // 3. Set Asset
+      document.getElementById('inputAsset').value = asset;
+      document.querySelectorAll('.asset-btn').forEach((b) => {
+        b.classList.toggle('selected', b.dataset.asset === asset);
+      });
+
+      if (action === 'SELL') {
+        // 4a. Set Session di SELL view
+        document.getElementById('inputSession').value = session;
+        document.querySelectorAll('.session-btn').forEach((b) => {
+          b.classList.toggle('selected', b.dataset.session === session);
+        });
+        document.getElementById('sessionSingleWrap').style.display = 'block';
+        document.getElementById('sessionHopWrap').style.display    = 'none';
+        resetHopSelection();
+      } else if (action === 'HOP') {
+        // 4b. Pre-set FROM session, biarkan user pilih TO
+        resetHopSelection();
+        hopSelection.from        = session;
+        hopSelection.currentStep = 'to';
+        document.getElementById('inputFromSession').value = session;
+        document.getElementById('hopStepLabel').textContent = 'Klik TO sekarang';
+        document.querySelectorAll('.hop-session-btn').forEach((b) => {
+          if (b.dataset.hopSession === session) {
+            b.classList.add('is-from');
+            b.querySelector('.hop-session-tag').textContent = 'FROM';
+          }
+        });
+        document.getElementById('sessionSingleWrap').style.display = 'none';
+        document.getElementById('sessionHopWrap').style.display    = 'block';
+      }
+
+      // 5. Quantity = full holdings (default safe)
+      document.getElementById('inputQty').value = qty;
+
+      updatePreview();
+      showToast('✓ Form filled: ' + teamName + ' ' + action + ' ' + qty + ' ' + asset + ' @ ' + session, 'success');
+    }
+    function canConfirmTransaction() {
+      const btn = document.getElementById('confirmBtn');
+      return btn && !btn.disabled && !gameState.isGameEnded;
+    }
+    function closeActiveModal() {
+      // Settlement screen tidak boleh ditutup pakai Esc (terminal phase)
+      if (gameState.isEventLocked) {
+        // Cuekin Esc selama popup event jalan (auto-hide via timer) — biar tidak rusak flow
+        return;
+      }
+      // Pause overlay tidak ditutup pakai Esc — pakai Resume button atau Space
+    }
+
+    function handleKeydown(e) {
+      const tag = e.target.tagName;
+      const isTyping = tag === 'INPUT' || tag === 'TEXTAREA';
+
+      // Ctrl+Z — undo, walaupun lagi typing
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
+        e.preventDefault();
+        undoLastTransaction();
+        return;
+      }
+
+      if (isTyping && e.key !== 'Enter') return;
+
+      switch (e.key) {
+        case 'Enter':
+          if (canConfirmTransaction()) {
+            e.preventDefault();
+            handleConfirm();
+          }
+          break;
+        case 'Escape':
+          closeActiveModal();
+          break;
+        case ' ':
+          if (gameState.timer.isRunning) {
+            e.preventDefault();
+            pauseTimer();
+          } else if (gameState.timer.isPaused) {
+            e.preventDefault();
+            resumeTimer();
+          }
+          break;
+        case '1': setTeam('Alpha'); break;
+        case '2': setTeam('Beta');  break;
+        case '3': setTeam('Gamma'); break;
+        case 'b': case 'B': setAction('BUY');  break;
+        case 's': case 'S': setAction('SELL'); break;
+        case 'h': case 'H': setAction('HOP');  break;
+        case 'm': case 'M': toggleSound(); break;
+      }
+    }
+
+    // ============================================================
+    // EVENT WIRING
+    // ============================================================
+    function wireForm() {
+      // Step 8: dropdown lama → hidden inputs. Hanya inputQty yang masih
+      // butuh listener karena bisa di-edit langsung via keyboard.
+      const qtyInput = document.getElementById('inputQty');
+      qtyInput.addEventListener('input',  updatePreview);
+      qtyInput.addEventListener('change', updatePreview);
+
+      document.getElementById('bankForm').addEventListener('submit', handleConfirm);
+      document.getElementById('resetBtn').addEventListener('click', () => resetGame(false));
+
+      // Timer controls
+      document.getElementById('startBtn').addEventListener('click', startTimer);
+      document.getElementById('pauseBtn').addEventListener('click', pauseTimer);
+      document.getElementById('resumeBtn').addEventListener('click', resumeTimer);
+      document.getElementById('skipBtn').addEventListener('click', skipToNextEvent);
+
+      // Polish (Step 5)
+      document.getElementById('soundToggle').addEventListener('click', toggleSound);
+      document.getElementById('undoBtn').addEventListener('click', undoLastTransaction);
+    }
+
+    // ============================================================
+    // BOOTSTRAP
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', () => {
+      wireForm();
+      setupActionButtons();      // BUY / SELL / HOP segmented
+      setupTeamButtons();        // Step 8: 3 team buttons
+      setupAssetButtons();       // Step 8: 5 asset buttons
+      setupSessionButtons();     // Step 8: 3 session buttons (BUY/SELL view)
+      setupHopSessionButtons();  // Step 8: HOP From → To picker
+      setupQuantityControls();   // Step 8: -/+/MAX
+
+      // Polish (Step 5): keyboard, recovery, autosave, safety net
+      document.addEventListener('keydown', handleKeydown);
+      checkRecovery();
+      setInterval(autoSaveState, 5000);
+      startSafetyNet();
+
+      render();
+      updateQuantityToMax(); // Step 9: init slider berdasarkan default Tim/Aksi/Aset/Sesi
+      updatePreview();
+    });
+  </script>
+
+</body>
+</html>
