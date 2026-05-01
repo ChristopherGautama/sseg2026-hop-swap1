@@ -733,165 +733,6 @@
     }
 
     /* ============================================================
-       ACTIVE EVENT BANNER (persistent setelah popup hilang)
-       ============================================================ */
-    .active-event-banner {
-      background: linear-gradient(180deg, rgba(26, 27, 69, 0.95), rgba(15, 18, 48, 0.95));
-      border: 1px solid var(--gold-border);
-      border-radius: 12px;
-      padding: 14px 20px;
-      margin-bottom: 16px;
-      box-shadow:
-        0 0 24px rgba(212, 175, 55, 0.15),
-        inset 0 0 0 1px rgba(123, 95, 176, 0.2);
-      transition: opacity 0.4s ease, transform 0.4s ease;
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .active-event-banner.hidden {
-      display: none;
-    }
-
-    .active-event-banner.entering {
-      opacity: 0;
-      transform: translateY(-12px);
-    }
-
-    .active-event-banner.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .banner-header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 12px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-    }
-
-    .banner-title-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .banner-counter {
-      background: rgba(212, 175, 55, 0.18);
-      color: var(--gold-bright);
-      padding: 3px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .banner-eyebrow {
-      color: var(--text-muted);
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .banner-title {
-      color: var(--gold);
-      font-family: 'Cinzel', serif;
-      font-size: 18px;
-      font-weight: 700;
-      margin: 0;
-      letter-spacing: 0.02em;
-    }
-
-    .banner-origin-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(212, 175, 55, 0.15);
-      border: 1px solid var(--gold-border);
-      color: var(--gold-bright);
-      padding: 5px 14px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      font-family: 'Inter', sans-serif;
-      white-space: nowrap;
-    }
-
-    .banner-impacts-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
-    }
-
-    .banner-asset-block {
-      background: rgba(45, 31, 74, 0.4);
-      border: 1px solid rgba(123, 95, 176, 0.25);
-      border-radius: 8px;
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .banner-asset-name {
-      color: var(--text-main);
-      font-weight: 700;
-      font-size: 13px;
-      letter-spacing: 0.06em;
-      text-align: center;
-      padding-bottom: 6px;
-      border-bottom: 1px solid rgba(123, 95, 176, 0.2);
-      font-family: 'Inter', sans-serif;
-    }
-
-    .banner-asset-cells {
-      display: flex;
-      justify-content: space-around;
-      gap: 4px;
-    }
-
-    .banner-cell {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      flex: 1;
-    }
-
-    .banner-cell-label {
-      color: var(--text-muted);
-      font-size: 10px;
-      letter-spacing: 0.06em;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .banner-cell-value {
-      font-size: 12px;
-      font-weight: 700;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .banner-cell-value.pos { color: var(--green); }
-    .banner-cell-value.neg { color: var(--red); }
-    .banner-cell-value.muted { color: var(--text-muted); opacity: 0.4; }
-
-    /* Responsive: di layar sempit (jarang terjadi karena target TV 32"), stack vertical */
-    @media (max-width: 900px) {
-      .banner-impacts-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .banner-title { font-size: 15px; }
-    }
-
-    /* ============================================================
        TIMER (Step 4)
        ============================================================ */
     .timer-display {
@@ -2969,23 +2810,6 @@
     </header>
 
     <!-- ============================================================
-         ACTIVE EVENT BANNER (persistent setelah popup hilang)
-         ============================================================ -->
-    <div id="activeEventBanner" class="active-event-banner hidden">
-      <div class="banner-header-row">
-        <div class="banner-title-group">
-          <span class="banner-counter">EVENT <span id="bannerEventNumber">—</span>/4</span>
-          <span class="banner-eyebrow">⚡ ACTIVE TIME DISTORTION</span>
-          <h3 class="banner-title" id="bannerEventTitle"></h3>
-        </div>
-        <div class="banner-origin-badge" id="bannerOriginBadge"></div>
-      </div>
-      <div class="banner-impacts-grid" id="bannerImpactsGrid">
-        <!-- Diisi oleh showEventBanner() — 5 asset blocks (LUMA/VAUL/GAIA/ELIX/PORT) -->
-      </div>
-    </div>
-
-    <!-- ============================================================
          MIDDLE: MARKET BOARD (60%) + BANK PANEL (40%)
          ============================================================ -->
     <section class="middle-grid">
@@ -4430,9 +4254,6 @@
     function resetGame(skipConfirm) {
       if (!skipConfirm && !confirm('Yakin reset semua tim ke kondisi awal?')) return;
 
-      // Hilangkan banner event aktif (kalau masih tampil)
-      clearEventBanner();
-
       // Stop timer kalau jalan
       if (gameState.timer.intervalId) {
         clearInterval(gameState.timer.intervalId);
@@ -4578,9 +4399,6 @@
         }
       }
 
-      // Clear banner event sebelumnya supaya tidak overlap dgn popup baru
-      clearEventBanner();
-
       soundEventTrigger();
       showEventPopup(event, eventNumber, originSession);
 
@@ -4619,11 +4437,6 @@
         gameState.pendingEventTrigger = null;
         gameState.isPausedForEvent    = false;
         render();
-
-        // Setelah popup hide animation selesai (500ms), tampilkan banner persisten
-        setTimeout(() => {
-          showEventBanner(event, eventNumber, originSession);
-        }, 500);
 
         // Step 7: AUTO RESUME timer (kalau sebelumnya pause karena auto-trigger)
         if (gameState.timer.remainingSeconds > 0 && !gameState.isGameEnded) {
@@ -4736,74 +4549,6 @@
       const overlay = document.getElementById('eventOverlay');
       overlay.classList.remove('show');
       setTimeout(() => overlay.classList.add('hidden'), 500);
-    }
-
-    // ============================================================
-    // ACTIVE EVENT BANNER — persistent setelah popup hilang
-    // ============================================================
-    function showEventBanner(event, eventNumber, originSession) {
-      const banner = document.getElementById('activeEventBanner');
-      if (!banner) return;
-
-      const sessionOrder = gameState.config.sessions;
-      const originIdx = sessionOrder.indexOf(originSession);
-      const startIdx = originIdx === -1 ? 0 : originIdx;
-      const sessionLabels = { Dawn: 'Da', Noon: 'No', Dusk: 'Du' };
-
-      // Update header
-      document.getElementById('bannerEventNumber').textContent = eventNumber;
-      document.getElementById('bannerEventTitle').textContent = event.title;
-      document.getElementById('bannerOriginBadge').textContent =
-        `⏱ ORIGIN: ${originSession.toUpperCase()}`;
-
-      // Build impacts grid (5 asset blocks)
-      let html = '';
-      for (const asset in event.impacts) {
-        const sessions = event.impacts[asset];
-        let cellsHtml = '';
-        sessionOrder.forEach((s, idx) => {
-          const label = sessionLabels[s] || s.substring(0, 2);
-          if (idx < startIdx || sessions[s] === undefined) {
-            // Sebelum origin atau tidak ada impact → muted "—"
-            cellsHtml += `
-              <div class="banner-cell">
-                <span class="banner-cell-label">${label}</span>
-                <span class="banner-cell-value muted">—</span>
-              </div>`;
-          } else {
-            const pct = sessions[s] * 100;
-            const cls = pct >= 0 ? 'pos' : 'neg';
-            const sign = pct >= 0 ? '+' : '';
-            cellsHtml += `
-              <div class="banner-cell">
-                <span class="banner-cell-label">${label}</span>
-                <span class="banner-cell-value ${cls}">${sign}${pct.toFixed(0)}%</span>
-              </div>`;
-          }
-        });
-
-        html += `
-          <div class="banner-asset-block">
-            <div class="banner-asset-name">${asset}</div>
-            <div class="banner-asset-cells">${cellsHtml}</div>
-          </div>`;
-      }
-
-      document.getElementById('bannerImpactsGrid').innerHTML = html;
-
-      // Animation: hidden → entering → show
-      banner.classList.remove('hidden');
-      banner.classList.add('entering');
-      void banner.offsetWidth; // force reflow untuk transition
-      banner.classList.remove('entering');
-      banner.classList.add('show');
-    }
-
-    function clearEventBanner() {
-      const banner = document.getElementById('activeEventBanner');
-      if (!banner) return;
-      banner.classList.remove('show');
-      setTimeout(() => banner.classList.add('hidden'), 400);
     }
 
     // ============================================================
@@ -5151,9 +4896,6 @@
     // ============================================================
     function executeSettlement() {
       if (gameState.settlement.isExecuted) return;
-
-      // Hilangkan banner event sebelum reveal winner
-      clearEventBanner();
 
       // Snapshot harga final
       gameState.settlement.finalPriceSnapshot =
@@ -5774,22 +5516,6 @@
         gameState.timer.isPaused           = true;
         showPauseOverlay();
         showToast('✓ Game restored from auto-save (paused)', 'success', 4000);
-
-        // Re-show active event banner kalau masih dalam fase trading
-        const phase = gameState.currentPhase;
-        if (
-          gameState.eventsTriggered > 0 &&
-          phase !== 'settlement' &&
-          phase !== 'ended'
-        ) {
-          const lastSlot = gameState.config.selectedEvents[gameState.eventsTriggered - 1];
-          if (lastSlot) {
-            const lastEvent = EVENT_LIBRARY[lastSlot.eventId];
-            if (lastEvent) {
-              showEventBanner(lastEvent, gameState.eventsTriggered, lastSlot.originSession);
-            }
-          }
-        }
       } catch (e) {
         showToast('⚠ Recovery gagal — start fresh', 'error');
         clearAutoSave();
