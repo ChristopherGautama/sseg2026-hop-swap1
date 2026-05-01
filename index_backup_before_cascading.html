@@ -3269,13 +3269,7 @@
         sessionTimes: { Dawn: "09:00", Noon: "12:00", Dusk: "15:00" },
         assets: ["LUMA", "VAUL", "GAIA", "ELIX", "PORT"],
         // 4 event terpilih (urutan tetap) — bisa di-edit kalau mau ganti event
-        // Cascading temporal effect: hanya sesi >= originSession yang kena efek
-        selectedEvents: [
-          { eventId: "BI_HIKE",          originSession: "Dawn" },  // Event 1 — kena Dawn+Noon+Dusk
-          { eventId: "TECH_BEAT",        originSession: "Noon" },  // Event 2 — kena Noon+Dusk only
-          { eventId: "LOGISTICS_CRISIS", originSession: "Noon" },  // Event 3 — kena Noon+Dusk only
-          { eventId: "EV_SUBSIDY",       originSession: "Dusk" },  // Event 4 — kena Dusk only
-        ],
+        selectedEvents: ["BI_HIKE", "TECH_BEAT", "LOGISTICS_CRISIS", "EV_SUBSIDY"],
         // Cue times (remainingSeconds saat tombol event berkedip)
         // 720 = 12:00, 540 = 9:00, 360 = 6:00, 240 = 4:00
         cueRemainingSeconds: [720, 540, 360, 240],
@@ -3288,106 +3282,82 @@
     const INITIAL_MARKET = JSON.parse(JSON.stringify(gameState.market));
 
     // ============================================================
-    // EVENT LIBRARY — 8 events (4 dipakai per game, 4 cadangan)
-    // impacts[asset][session] = baseline magnitude untuk semua 3 sesi.
-    // Cascading filter (origin) di-apply di applyEventImpacts().
-    // Tier: Primary ±20-35% | Secondary ±10-18% | Tertiary ±3-10%
+    // EVENT LIBRARY — 8 events (4 dipakai, 4 cadangan)
+    // impacts[asset][session] = persen perubahan harga (0.20 = +20%)
     // ============================================================
     const EVENT_LIBRARY = {
       BI_HIKE: {
         id: "BI_HIKE",
         title: "BI NAIKKAN SUKU BUNGA +50bps",
-        description: "Bank Indonesia menaikkan suku bunga +50bps. Bank menguat tajam, growth & renewables tertekan, logistik melemah karena cost of capital naik.",
+        description: "Bank Indonesia menaikkan suku bunga. Sektor perbankan menguat, energi terbarukan tertekan di seluruh timeline pasar.",
         impacts: {
-          LUMA: { Dawn: -0.15, Noon: -0.22, Dusk: -0.18 },
           VAUL: { Dawn:  0.20, Noon:  0.30, Dusk:  0.25 },
-          GAIA: { Dawn: -0.15, Noon: -0.25, Dusk: -0.20 },
-          ELIX: { Dawn: -0.05, Noon: -0.08, Dusk: -0.07 },
-          PORT: { Dawn: -0.08, Noon: -0.12, Dusk: -0.10 }
+          GAIA: { Dawn: -0.15, Noon: -0.25, Dusk: -0.20 }
         }
       },
       BI_CUT: {
         id: "BI_CUT",
         title: "BI TURUNKAN SUKU BUNGA -25bps",
-        description: "Bank Indonesia menurunkan suku bunga -25bps. Cost of borrowing turun, hampir semua sektor menguat, kecuali bank yang margin-nya tertekan.",
+        description: "Bank Indonesia menurunkan suku bunga. Energi terbarukan menguat, sektor bank melemah tipis, dan aset growth ikut terdorong.",
         impacts: {
-          LUMA: { Dawn:  0.15, Noon:  0.22, Dusk:  0.18 },
           VAUL: { Dawn: -0.05, Noon: -0.10, Dusk: -0.12 },
           GAIA: { Dawn:  0.12, Noon:  0.18, Dusk:  0.15 },
-          ELIX: { Dawn:  0.03, Noon:  0.06, Dusk:  0.05 },
-          PORT: { Dawn:  0.08, Noon:  0.12, Dusk:  0.10 }
+          LUMA: { Dawn:  0.05, Noon:  0.05, Dusk:  0.05 }
         }
       },
       EV_SUBSIDY: {
         id: "EV_SUBSIDY",
         title: "PEMERINTAH UMUMKAN SUBSIDI BESAR EV & RENEWABLES",
-        description: "Pemerintah mengumumkan subsidi besar EV & renewables. Sektor renewables melonjak, logistik & tech ikut terdorong, ELIX nyaris netral.",
+        description: "Pemerintah mengumumkan subsidi besar untuk kendaraan listrik dan energi hijau. Sektor renewables melonjak, logistik ikut terdorong.",
         impacts: {
-          LUMA: { Dawn:  0.10, Noon:  0.15, Dusk:  0.12 },
-          VAUL: { Dawn:  0.05, Noon:  0.08, Dusk:  0.07 },
           GAIA: { Dawn:  0.25, Noon:  0.35, Dusk:  0.30 },
-          ELIX: { Dawn: -0.03, Noon: -0.05, Dusk: -0.04 },
           PORT: { Dawn:  0.08, Noon:  0.12, Dusk:  0.10 }
         }
       },
       LOGISTICS_CRISIS: {
         id: "LOGISTICS_CRISIS",
         title: "KRISIS LOGISTIK GLOBAL / PORT CONGESTION",
-        description: "Krisis logistik global. PORT terpukul keras, semua sektor lain tertekan karena cost & supply chain bermasalah, kecuali ELIX yang naik karena demand healthcare.",
+        description: "Gangguan logistik internasional meluas ke seluruh timeline pasar. Sektor logistik terpukul, sementara healthcare mendapat dorongan kecil.",
         impacts: {
-          LUMA: { Dawn: -0.10, Noon: -0.15, Dusk: -0.12 },
-          VAUL: { Dawn: -0.05, Noon: -0.08, Dusk: -0.07 },
-          GAIA: { Dawn: -0.08, Noon: -0.12, Dusk: -0.10 },
-          ELIX: { Dawn:  0.08, Noon:  0.12, Dusk:  0.10 },
-          PORT: { Dawn: -0.25, Noon: -0.35, Dusk: -0.30 }
+          PORT: { Dawn: -0.20, Noon: -0.30, Dusk: -0.25 },
+          ELIX: { Dawn:  0.08, Noon:  0.12, Dusk:  0.10 }
         }
       },
       TECH_BEAT: {
         id: "TECH_BEAT",
         title: "TECH LABA DI ATAS EKSPEKTASI",
-        description: "Perusahaan tech rilis laba di atas ekspektasi. LUMA melonjak, sentiment growth angkat hampir semua sektor, kecuali ELIX yang kena rotation negatif.",
+        description: "Perusahaan teknologi besar merilis laba yang jauh di atas ekspektasi pasar. Sektor teknologi dan media melonjak tajam.",
         impacts: {
-          LUMA: { Dawn:  0.25, Noon:  0.35, Dusk:  0.30 },
-          VAUL: { Dawn:  0.05, Noon:  0.08, Dusk:  0.07 },
-          GAIA: { Dawn:  0.10, Noon:  0.15, Dusk:  0.12 },
-          ELIX: { Dawn: -0.05, Noon: -0.10, Dusk: -0.08 },
-          PORT: { Dawn:  0.05, Noon:  0.08, Dusk:  0.07 }
+          LUMA: { Dawn: 0.25, Noon: 0.35, Dusk: 0.30 }
         }
       },
       PANDEMIC: {
         id: "PANDEMIC",
         title: "PANDEMI VARIAN BARU TERDETEKSI",
-        description: "Varian baru terdeteksi. ELIX melonjak (vaccine demand), LUMA naik (work-from-home), VAUL/GAIA/PORT semua jatuh karena ketakutan resesi global.",
+        description: "Varian baru terdeteksi di Wonderland. Sektor kesehatan melonjak, logistik tertekan, dan teknologi mendapat dorongan moderat.",
         impacts: {
-          LUMA: { Dawn:  0.12, Noon:  0.18, Dusk:  0.15 },
-          VAUL: { Dawn: -0.15, Noon: -0.22, Dusk: -0.18 },
-          GAIA: { Dawn: -0.08, Noon: -0.12, Dusk: -0.10 },
-          ELIX: { Dawn:  0.25, Noon:  0.35, Dusk:  0.30 },
-          PORT: { Dawn: -0.15, Noon: -0.22, Dusk: -0.18 }
-        }
-      },
-      INFLATION: {
-        id: "INFLATION",
-        title: "INFLASI MELONJAK & HARGA OIL NAIK",
-        description: "Inflasi melonjak, harga oil dan komoditas naik tajam. PORT (BBM) & LUMA (cost) terpukul keras, VAUL & ELIX tertekan, hanya GAIA yang menguat (substitusi energi).",
-        impacts: {
-          LUMA: { Dawn: -0.15, Noon: -0.22, Dusk: -0.18 },
-          VAUL: { Dawn: -0.10, Noon: -0.15, Dusk: -0.12 },
-          GAIA: { Dawn:  0.10, Noon:  0.15, Dusk:  0.12 },
-          ELIX: { Dawn: -0.05, Noon: -0.10, Dusk: -0.08 },
-          PORT: { Dawn: -0.20, Noon: -0.30, Dusk: -0.25 }
+          ELIX: { Dawn:  0.20, Noon:  0.30, Dusk:  0.25 },
+          PORT: { Dawn: -0.15, Noon: -0.15, Dusk: -0.15 },
+          LUMA: { Dawn:  0.10, Noon:  0.15, Dusk:  0.12 }
         }
       },
       BANK_SCANDAL: {
         id: "BANK_SCANDAL",
         title: "SKANDAL KEUANGAN BANK BESAR",
-        description: "Skandal besar bank. VAUL terjun bebas, kepercayaan pasar runtuh memukul hampir semua sektor, hanya ELIX (defensive flight) yang menguat.",
+        description: "Skandal besar mengguncang sektor keuangan Wonderland. Kepercayaan pasar runtuh dan saham perbankan tertekan tajam.",
         impacts: {
-          LUMA: { Dawn: -0.10, Noon: -0.15, Dusk: -0.12 },
           VAUL: { Dawn: -0.25, Noon: -0.35, Dusk: -0.30 },
-          GAIA: { Dawn: -0.10, Noon: -0.15, Dusk: -0.12 },
-          ELIX: { Dawn:  0.08, Noon:  0.12, Dusk:  0.10 },
-          PORT: { Dawn: -0.05, Noon: -0.10, Dusk: -0.08 }
+          ELIX: { Dawn:  0.05, Noon:  0.05, Dusk:  0.05 }
+        }
+      },
+      INFLATION: {
+        id: "INFLATION",
+        title: "INFLASI MELONJAK & HARGA KOMODITAS NAIK",
+        description: "Inflasi melonjak dan harga komoditas naik di seluruh timeline pasar. Energi hijau terdorong, logistik melemah, dan teknologi ikut tertekan tipis.",
+        impacts: {
+          GAIA: { Dawn:  0.10, Noon:  0.15, Dusk:  0.12 },
+          PORT: { Dawn: -0.12, Noon: -0.18, Dusk: -0.15 },
+          LUMA: { Dawn: -0.05, Noon: -0.05, Dusk: -0.05 }
         }
       }
     };
@@ -4333,22 +4303,9 @@
     // priceChanges TIDAK direset di sini — biar arrow + border kiri
     // tetap visible sampai event berikutnya di-trigger atau reset
     // ============================================================
-    function applyEventImpacts(event, originSession) {
-      // Cascading rule: hanya sesi >= originSession yang terkena efek.
-      // Sesi sebelum origin = TIDAK berubah (memperkuat value Hop Token).
-      const sessionOrder = gameState.config.sessions; // ['Dawn', 'Noon', 'Dusk']
-      const originIdx = sessionOrder.indexOf(originSession);
-
-      // Safety fallback: kalau originSession invalid, anggap Dawn (kena semua)
-      const startIdx = originIdx === -1 ? 0 : originIdx;
-
+    function applyEventImpacts(event) {
       for (const asset in event.impacts) {
         for (const session in event.impacts[asset]) {
-          const sessionIdx = sessionOrder.indexOf(session);
-
-          // Skip sesi yang sebelum origin
-          if (sessionIdx < startIdx) continue;
-
           const oldPrice  = gameState.market[asset][session];
           const newPrice  = Math.round(oldPrice * (1 + event.impacts[asset][session]));
 
@@ -4372,10 +4329,8 @@
 
       gameState.isEventLocked = true;
 
-      const slot          = gameState.config.selectedEvents[eventNumber - 1];
-      const eventId       = slot.eventId;
-      const originSession = slot.originSession;
-      const event         = EVENT_LIBRARY[eventId];
+      const eventId = gameState.config.selectedEvents[eventNumber - 1];
+      const event   = EVENT_LIBRARY[eventId];
       if (!event) {
         gameState.isEventLocked = false;
         showToast('⚠ Event tidak ditemukan: ' + eventId, 'error');
@@ -4386,7 +4341,6 @@
       gameState.priceHistory.push({
         eventNumber,
         eventId,
-        originSession,
         timestamp:    new Date().toISOString(),
         pricesBefore: JSON.parse(JSON.stringify(gameState.market))
       });
@@ -4400,7 +4354,7 @@
       }
 
       soundEventTrigger();
-      showEventPopup(event, eventNumber, originSession);
+      showEventPopup(event, eventNumber);
 
       // Re-render tombol agar status "active" hilang sementara popup tampil
       // (juga clears arrow lama di Market Board sebelum di-cover popup)
@@ -4410,7 +4364,7 @@
       // Sengaja TIDAK render — biar peserta tidak lihat angka berubah
       // di balik popup yang gelap
       setTimeout(() => {
-        applyEventImpacts(event, originSession);
+        applyEventImpacts(event);
       }, 100);
 
       // T+8s — popup mulai fade-out (slow, 2 detik)
@@ -4449,26 +4403,14 @@
     // ============================================================
     // SHOCK EVENTS — popup show / hide
     // ============================================================
-    function buildImpactsList(impacts, originSession) {
+    function buildImpactsList(impacts) {
       const sectorIcon = {
         LUMA: '🜨', VAUL: '⚖', GAIA: '✦', ELIX: '☤', PORT: '⚓'
       };
-      const sessionOrder = gameState.config.sessions;
-      const originIdx = sessionOrder.indexOf(originSession);
-      const startIdx = originIdx === -1 ? 0 : originIdx;
-
       let html = '';
       for (const asset in impacts) {
         const sessions = impacts[asset];
-        const cells = sessionOrder.map((s, idx) => {
-          // Sesi sebelum origin = "no effect" (cascading), tampilkan tanda — abu-abu
-          if (idx < startIdx) {
-            return `
-              <div class="impact-session-cell">
-                <span class="label">${s}</span>
-                <span class="text-muted" style="opacity:0.4;">—</span>
-              </div>`;
-          }
+        const cells = gameState.config.sessions.map((s) => {
           if (sessions[s] === undefined) {
             return `
               <div class="impact-session-cell">
@@ -4498,37 +4440,17 @@
       return html;
     }
 
-    function showEventPopup(event, eventNumber, originSession) {
+    function showEventPopup(event, eventNumber) {
       const overlay = document.getElementById('eventOverlay');
       const card    = document.getElementById('eventCard');
-
-      // Origin badge: gold pill dengan icon clock
-      const originBadge = `
-        <div style="
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: rgba(212, 175, 55, 0.15);
-          border: 1px solid var(--gold-border);
-          color: var(--gold-bright);
-          padding: 4px 12px;
-          border-radius: 999px;
-          font-size: 12px;
-          font-weight: 600;
-          letter-spacing: 0.05em;
-          margin-top: 8px;
-        ">
-          ⏱ ORIGIN: ${originSession.toUpperCase()} → mempengaruhi sesi dari ${originSession} ke depan
-        </div>`;
 
       card.innerHTML = `
         <div class="event-counter">EVENT ${eventNumber}/4</div>
         <div class="event-eyebrow">⚡ Time Distortion Event</div>
         <h2 class="event-title">${event.title}</h2>
         <p class="event-description">${event.description}</p>
-        ${originBadge}
         <div class="event-impacts-title">Dampak Harga</div>
-        <div class="event-impacts">${buildImpactsList(event.impacts, originSession)}</div>
+        <div class="event-impacts">${buildImpactsList(event.impacts)}</div>
         <div class="event-progress">
           <div class="progress-bar"></div>
         </div>
@@ -4582,8 +4504,7 @@
 
       let html = '';
       for (let n = 1; n <= 4; n++) {
-        const slot    = gameState.config.selectedEvents[n - 1];
-        const eventId = slot.eventId;
+        const eventId = gameState.config.selectedEvents[n - 1];
         const label   = labels[eventId] || eventId;
         const isDone   = n <= triggered;
         const isActive = n === triggered + 1 && !gameState.isEventLocked && !gameState.isGameEnded;
@@ -4625,16 +4546,14 @@
 
       let html = '';
       for (let n = 1; n <= 4; n++) {
-        const slot          = gameState.config.selectedEvents[n - 1];
-        const eventId       = slot.eventId;
-        const originSession = slot.originSession;
+        const eventId = gameState.config.selectedEvents[n - 1];
         const isDone  = n <= triggered;
         const status  = isDone
           ? '<span class="status-done">triggered ✓</span>'
           : '<span class="status-pending">pending</span>';
         html += `
           <div class="event-log-line">
-            <span class="text-muted">Event ${n}: <span class="text-gold-bright">${eventId}</span> <span class="text-xs opacity-70">(origin: ${originSession})</span></span>
+            <span class="text-muted">Event ${n}: <span class="text-gold-bright">${eventId}</span></span>
             ${status}
           </div>
         `;
@@ -4789,8 +4708,7 @@
       const btn     = document.getElementById('eventTriggerBtn');
       if (!overlay || !btn) return;
 
-      const slot    = gameState.config.selectedEvents[eventNumber - 1];
-      const eventId = slot.eventId;
+      const eventId = gameState.config.selectedEvents[eventNumber - 1];
       const event   = EVENT_LIBRARY[eventId];
       // Ambil 4 kata pertama dari title biar tombol tidak overflow
       const eventTitle = event
@@ -4822,8 +4740,7 @@
 
     let cueNotifTimer = null;
     function showCueNotification(eventNumber) {
-      const slot    = gameState.config.selectedEvents[eventNumber - 1];
-      const eventId = slot.eventId;
+      const eventId = gameState.config.selectedEvents[eventNumber - 1];
       const el = document.getElementById('cueNotification');
       el.innerHTML =
         `🔔 EVENT ${eventNumber} READY — ${eventId}<br>` +
@@ -5588,8 +5505,7 @@
       if (gameState.priceHistory.length > 0) {
         gameState.priceHistory.forEach((p) => {
           const ev = EVENT_LIBRARY[p.eventId];
-          const origin = p.originSession ? ' [origin: ' + p.originSession + ']' : '';
-          c += 'Event ' + p.eventNumber + ': ' + p.eventId + origin + ' — ' + (ev ? ev.title : p.eventId) + '\n';
+          c += 'Event ' + p.eventNumber + ': ' + (ev ? ev.title : p.eventId) + '\n';
         });
       } else {
         c += '(no events triggered)\n';
